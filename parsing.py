@@ -19,7 +19,11 @@ def get_url_contents(url: str) -> str:
 
 def get_links_from_rss(content: str) -> list[str]:
     '''Parses the RSS feed content and returns a list of all link elements.'''
-    root = ET.fromstring(content)
+    try:
+        root = ET.fromstring(content)
+    except ET.ParseError as e:
+        logging.error(f"Failed to parse RSS content: {e}")
+        return []
     links = root.findall(".//item/link")
     return [link.text for link in links]
 

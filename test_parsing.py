@@ -45,8 +45,8 @@ class TestGetLinksFromRss:
                 <!-- Missing closing tags -->
         '''
 
-        with pytest.raises(Exception):
-            get_links_from_rss(rss_content)
+        expected_links = []
+        assert get_links_from_rss(rss_content) == expected_links
 
     def test_get_links_from_rss_links_not_in_item(self):
         rss_content = '''<?xml version="1.0" encoding="UTF-8" ?>
