@@ -8,7 +8,12 @@ from flask import Flask, request, jsonify
 from rag.retrieval import retrieve_chunks
 from openai import OpenAI
 import os
+from dotenv import load_dotenv
 import logging
+
+from rag.ingest import ingest_article
+
+load_dotenv()
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
