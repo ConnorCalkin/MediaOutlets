@@ -6,3 +6,4 @@ openai
 chromadb
 python-dotenv
 spacy
+vaderSentiment
