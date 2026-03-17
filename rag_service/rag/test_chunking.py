@@ -1,4 +1,4 @@
-from rag.chunking import chunk_text
+from chunking import chunk_text
 
 
 def test_chunking_creates_multiple_chunks():
