@@ -2,10 +2,6 @@ import spacy
 import logging
 
 logger = logging.getLogger("ner")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -37,5 +33,14 @@ def extract_entities(article_text):
     return entities
 
 
-print(extract_entities(
-    "Elon Musk is the CEO of Tesla. Apple Inc. is a major tech company."))
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    print(
+        extract_entities(
+            "Elon Musk is the CEO of Tesla. Apple Inc. is a major tech company."
+        )
+    )
