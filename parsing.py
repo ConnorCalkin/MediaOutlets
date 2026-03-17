@@ -1,11 +1,20 @@
 import requests
 import xml.etree.ElementTree as ET
+import logging
+from utils import debug_generator
 
 
+@debug_generator
 def get_url_contents(url: str) -> str:
     '''Fetches the content from the specified URL and returns it as a string.'''
     resp = requests.get(url)
-    return resp.content
+
+    if resp.status_code != 200:
+        logging.error(
+            f"Failed to fetch URL: {url} with status code: {resp.status_code}")
+        return ""
+
+    return resp.text
 
 
 def get_links_from_rss(content: str) -> list[str]:

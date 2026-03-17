@@ -1,5 +1,6 @@
 from parsing import get_article_html_from_rss
 from scraping import get_body_text
+import logging
 
 
 def get_article_text_from_rss(url: str) -> iter[str]:
@@ -11,4 +12,4 @@ def get_article_text_from_rss(url: str) -> iter[str]:
 if __name__ == "__main__":
     url = "https://www.ok.co.uk/?service=rss"
     for article_text in get_article_text_from_rss(url):
-        print(article_text)
+        continue
