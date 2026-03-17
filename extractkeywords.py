@@ -1,64 +1,79 @@
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-import string
+import spacy
+from typing import List
 
-# Updated resources for Python 3.13 / NLTK 3.9+
-nltk.download('punkt', quiet=True)     # Still good to keep for legacy
-nltk.download('punkt_tab', quiet=True)  # THE FIX: Required for new tokenizers
-nltk.download('stopwords', quiet=True)
-nltk.download('averaged_perceptron_tagger_eng',
-              quiet=True)  # Newer version of tagger
+# Load spaCy model once (avoids reloading on every function call)
+nlp = spacy.load("en_core_web_sm")
 
 
-def extract_keywords(text):
+# Curated high-impact media terms for celebrity PR analysis
+IMPACT_TERMS = {
+    "scandal", "controversy", "backlash", "cancelled", "lawsuit", "arrest",
+    "relationship", "dating", "breakup", "divorce", "engagement", "wedding",
+    "affair", "cheating", "married", "rumors", "viral", "headline",
+    "exclusive", "marriage", "award", "nomination", "premiere",
+    "red carpet", "brand deal", "collaboration"
+}
+
+
+def extract_keywords_spacy(text: str) -> List[str]:
     """
-    Extracts events, locations, dates, and 'media-hot' keywords.
-    Filters out common stop words and punctuation.
+    Extracts high-value keywords from a text using spaCy.
+
+    This function is designed for celebrity PR/media analysis and focuses on:
+    - Locations, dates, and events (via Named Entity Recognition)
+    - Relationship and trending phrases (via noun chunk extraction)
+    - High-impact PR terms (via custom dictionary matching)
+
+    It explicitly excludes PERSON entities (e.g., celebrity names).
+
+    Args:
+        text (str): Input article or text to analyze.
+
+    Returns:
+        List[str]: A list of unique, cleaned keywords relevant to PR insights.
     """
+
     if not text:
         return []
 
-    # 1. Custom 'Hot' words for Otranto Media clients
-    # These are high-value terms for celebrities and news outlets
-    impact_terms = {
-        'love', 'scandal', 'relationship', 'murder', 'wedding',
-        'divorce', 'arrest', 'lawsuit', 'breakup', 'rumor', 'exclusive'
-    }
+    doc = nlp(text)
+    extracted_keywords = []
 
-    # 2. Tokenize and clean basic text
-    stop_words = set(stopwords.words('english'))
-    tokens = word_tokenize(text)
+    # Capture locations (GPE/LOC), dates, and events
+    for entity in doc.ents:
+        if entity.label_ in {"GPE", "LOC", "DATE", "EVENT"}:
+            extracted_keywords.append(entity.text.lower())
 
-    # 3. POS Tagging to find Nouns (Events/Locations) and Adjectives (Sentiments)
-    tagged = nltk.pos_tag(tokens)
+    # Capture meaningful phrases like "secret relationship"
+    for noun_chunk in doc.noun_chunks:
+        chunk_text = noun_chunk.text.lower().strip()
 
-    keywords = []
+        if any(term in chunk_text for term in IMPACT_TERMS):
+            extracted_keywords.append(chunk_text)
 
-    for word, tag in tagged:
-        clean_word = word.lower().translate(str.maketrans('', '', string.punctuation))
-
-        if not clean_word or clean_word in stop_words or len(clean_word) < 3:
+    # Capture individual impactful words (adjectives + nouns)
+    for token in doc:
+        if token.is_stop or token.is_punct or len(token.text) < 3:
             continue
 
-        # NNP: Proper Noun (Locations/Events)
-        # JJ: Adjective (Descriptive/Scandalous)
-        # CD: Cardinal Digit (Dates/Years)
-        if tag in ('NNP', 'JJ', 'CD') or clean_word in impact_terms:
-            keywords.append(clean_word)
+        if token.pos_ in {"ADJ", "NOUN"}:
+            token_text = token.text.lower()
 
-    # 4. Remove duplicates while preserving some order
-    unique_keywords = list(dict.fromkeys(keywords))
+            if token_text in IMPACT_TERMS:
+                extracted_keywords.append(token_text)
+
+    unique_keywords = list(dict.fromkeys(extracted_keywords))
 
     return unique_keywords
 
 
-# --- Example Usage for Otranto Labs ---
 if __name__ == "__main__":
-    sample_article = """
-    A scandalous breakup between celebrity couple John Smith and Jane Scarlett has shocked fans worldwide.
-    The couple, who were married for five years, announced their divorce last week amidst rumors of infidelity.
-     The news has dominated headlines, with many speculating about the reasons behind the split."""
+    sample_text = """
+    Sarah Jane is in a new relationship with actor Tom Smith. They were spotted
+    on a romantic date in Paris last weekend. This comes after Sarah's recent
+    breakup with her ex-husband, which was surrounded by scandal.
+    The new couple were seen together at the Grammys, sparking rumors of an exclusive romance.
+    """
 
-    found_keywords = extract_keywords(sample_article)
-    print(f"Extracted Keywords: {found_keywords}")
+    extracted_keywords = extract_keywords_spacy(sample_text)
+    print("Extracted Keywords:", extracted_keywords)
