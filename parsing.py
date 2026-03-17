@@ -32,6 +32,7 @@ def get_articles_from_rss(content: str) -> list[str]:
     for item in items:
         yield {
             'title': item.find('title').text,
+            'url': item.find('link').text,
             'body': get_body_text_from_url(item.find('link').text),
             'published': item.find('pubDate').text
         }
