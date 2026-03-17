@@ -1,5 +1,5 @@
 import pytest
-from name_entity_recognition.ner import extract_entities
+from ner import extract_entities
 
 
 def test_empty_string():
