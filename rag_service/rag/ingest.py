@@ -57,6 +57,9 @@ def build_metadata(article_id: str, title: str, url: str, source: str = None) ->
 
 
 def store_article_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]]) -> None:
+    """
+    Saves chunk text, embedding, and metadata in Chroma.
+    """
     add_chunks(chunks, metadata, embeddings)
 
 
