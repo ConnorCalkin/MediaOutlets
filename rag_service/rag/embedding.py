@@ -1,6 +1,5 @@
 """
-This module provides a function to get the embedding of a given text using OpenAI's 
-embedding model. The embedding is returned as a list of floats.
+Purpose: Convert text into vectors.
 """
 
 import logging
@@ -11,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_embedding(text: str) -> list[float]:
+    """
+    Sends the text to OpenAI, which returns the embedding.
+    - enables similarity search in vector DB
+    """
     try:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

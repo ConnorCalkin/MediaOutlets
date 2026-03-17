@@ -1,5 +1,5 @@
 """
-This module provides the retrieval functionality for the RAG system. 
+Purpose: Find relevant chunks for a question.
 """
 
 from rag.embedding import get_embedding
@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 def retrieve_chunks(query: str, k: int = 3):
     """
-    Retrieve top-k relevant chunks for a query
+    Embed the question, query Chroma, return top K matching chunks and their metadata.
+    - selects useful content for the LLM
     """
     try:
         # 1. Embed query

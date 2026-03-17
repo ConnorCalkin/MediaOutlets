@@ -1,5 +1,5 @@
 """
-This module will chunk the article body, ready for embedding.
+Purpose: Convert article text into chunks.
 """
 
 import logging
@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 def chunk_text(text: str, chunk_size: int = 3000, overlap: int = 500) -> list[str]:
     """
-    Split text into overlapping character-based chunks.
+    Takes the full text of an article, loops through it, creating overlapping chunks.
+    - improved retrieval accuracy and avoids long inputs (expensive)
     """
     if not text or not text.strip():
         logger.warning("Received empty or invalid text for chunking")

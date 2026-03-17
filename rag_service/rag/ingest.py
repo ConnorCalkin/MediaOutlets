@@ -1,7 +1,5 @@
 """
-This module defines the full ingestion pipeline for an article, including 
-chunking the text, generating embeddings, and storing the chunks and metadata 
-in ChromaDB. 
+Purpose: Full pipeline for one article.
 """
 
 from rag.chunking import chunk_text
@@ -15,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 def ingest_article(article_id: str, title: str, url: str, text: str, source: str = None):
     """
-    Full ingestion pipeline for one article
+    Chunks text, generate embeddings for each chunk, attach metadata, and store everything in Chroma.
+    - prepares data for RAG
     """
     try:
         # 1. Chunk

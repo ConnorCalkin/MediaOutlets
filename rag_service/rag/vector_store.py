@@ -1,3 +1,8 @@
+"""
+Purpose: Store chunks in Chroma.
+"""
+
+
 import chromadb
 from chromadb.utils import embedding_functions
 
@@ -14,7 +19,8 @@ collection = client.get_or_create_collection(name="articles")
 
 def add_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]]):
     """
-    Store chunks with embeddings in Chroma
+    Saves chunk text, embedding, and metadata.
+    - allows for fast semantic search later
     """
     try:
         ids = [f"{metadata['article_id']}_{i}" for i in range(len(chunks))]

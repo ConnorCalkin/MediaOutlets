@@ -1,5 +1,5 @@
 """
-This module defines the Flask application that serves as the API for the RAG system.
+Purpose: Expose RAG as API service.
 """
 
 
@@ -23,6 +23,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/query", methods=["POST"])
 def query():
+    """
+    Receives a question (query), calls retrieval, builds context, sends to OpenAI LLM, and returns
+    answer and sources.
+    - make system usable by users
+    """
     try:
         data = request.get_json()
         question = data.get("question")
