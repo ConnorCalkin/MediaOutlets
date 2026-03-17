@@ -1,0 +1,37 @@
+"""
+Purpose: Convert article text into chunks.
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def chunk_text(text: str, chunk_size: int = 3000, overlap: int = 500) -> list[str]:
+    """
+    Takes the full text of an article, loops through it, creating overlapping chunks.
+    - improved retrieval accuracy and avoids long inputs (expensive)
+    """
+    if not text or not text.strip():
+        logger.warning("Received empty or invalid text for chunking")
+        return []
+
+    chunks = []
+    start = 0
+    text = text.strip()
+
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end].strip()
+
+        if chunk:
+            chunks.append(chunk)
+
+        if end >= len(text):
+            break
+
+        start += chunk_size - overlap
+
+    logger.info(f"Created {len(chunks)} chunks")
+
+    return chunks
