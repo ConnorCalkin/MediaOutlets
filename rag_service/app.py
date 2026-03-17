@@ -16,7 +16,7 @@ from rag.ingest import ingest_article
 load_dotenv()
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -35,11 +35,15 @@ def query():
         if not question:
             return jsonify({"error": "No question provided"}), 400
 
+        logger.info(f"Received query: {question}")
+
         # 1. Retrieve relevant chunks
         documents, metadatas = retrieve_chunks(question)
 
         if not documents:
             return jsonify({"answer": "No relevant information found", "sources": []})
+
+        logger.info(f"Retrieved {len(documents)} chunks")
 
         # 2. Build context
         context = "\n\n".join(documents)
@@ -69,13 +73,15 @@ def query():
                 "url": meta.get("url")
             })
 
+        logger.info("Successfully generated response")
+
         return jsonify({
             "answer": answer,
             "sources": sources
         })
 
     except Exception as e:
-        logging.error(f"Query failed: {e}")
+        logger.error(f"Query failed: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 
