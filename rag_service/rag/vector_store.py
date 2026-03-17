@@ -2,9 +2,7 @@
 Purpose: Store chunks in Chroma.
 """
 
-
 import chromadb
-from chromadb.utils import embedding_functions
 
 import logging
 
@@ -22,26 +20,22 @@ def add_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]])
     Saves chunk text, embedding, and metadata.
     - allows for fast semantic search later
     """
-    try:
-        ids = [f"{metadata['article_id']}_{i}" for i in range(len(chunks))]
+    ids = [f"{metadata['article_id']}_{i}" for i in range(len(chunks))]
 
-        metadatas = [
-            {
-                **metadata,
-                "chunk_index": i
-            }
-            for i in range(len(chunks))
-        ]
+    metadatas = [
+        {
+            **metadata,
+            "chunk_index": i
+        }
+        for i in range(len(chunks))
+    ]
 
-        collection.add(
-            documents=chunks,
-            embeddings=embeddings,
-            metadatas=metadatas,
-            ids=ids
-        )
+    collection.add(
+        documents=chunks,
+        embeddings=embeddings,
+        metadatas=metadatas,
+        ids=ids
+    )
 
-        logger.info(
-            f"Stored {len(chunks)} chunks for article {metadata['article_id']}")
-
-    except Exception as e:
-        logger.error(f"Failed to store chunks: {e}")
+    logger.info(
+        f"Stored {len(chunks)} chunks for article {metadata['article_id']}")

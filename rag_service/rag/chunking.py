@@ -20,23 +20,18 @@ def chunk_text(text: str, chunk_size: int = 3000, overlap: int = 500) -> list[st
     start = 0
     text = text.strip()
 
-    try:
-        while start < len(text):
-            end = start + chunk_size
-            chunk = text[start:end].strip()
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end].strip()
 
-            if chunk:
-                chunks.append(chunk)
+        if chunk:
+            chunks.append(chunk)
 
-            if end >= len(text):
-                break
+        if end >= len(text):
+            break
 
-            start += chunk_size - overlap
+        start += chunk_size - overlap
 
-        logger.info(f"Created {len(chunks)} chunks")
+    logger.info(f"Created {len(chunks)} chunks")
 
-        return chunks
-
-    except Exception as e:
-        logger.error(f"Chunking failed: {e}")
-        return []
+    return chunks
