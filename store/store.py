@@ -48,7 +48,7 @@ def store_article(article_data):
         raise TypeError("Input must be a dictionary")
 
     required_fields = ["article_url", "published_date",
-                       "title", "body", "source_feed", "sentiment", "entities", "keywords"]
+                       "title", "body", "source", "sentiment", "entities", "keywords"]
     missing = [field for field in required_fields if field not in article_data]
     if missing:
         raise ValueError(f"Missing required fields: {missing}")
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
         "body": "This is a test article body.",
-        "source_feed": "BBC Business",
+        "source": "BBC Business",
         "sentiment": {"polarity": 0.65, "label": "positive"},
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
         "keywords": ["Electric Cars"]
