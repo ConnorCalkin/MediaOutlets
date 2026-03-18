@@ -7,3 +7,4 @@ chromadb
 python-dotenv
 spacy
 vaderSentiment
+boto3
