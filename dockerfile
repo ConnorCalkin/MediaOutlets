@@ -24,6 +24,7 @@ COPY rss_extraction/scraping.py .
 COPY rss_extraction/utils.py .
 COPY name_entity_recognition/ner.py .
 COPY sentiment_analysis/sentiment_analysis.py .
+COPY store/store.py .
 
 ## Add RAG service files
 COPY rag_service/rag/ingest.py .
