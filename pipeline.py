@@ -46,7 +46,7 @@ def ingest(article) -> None:
         logger.error(f"Error ingesting article {article['url']}: {e}")
 
 
-def pipeline():
+def pipeline(event=None, context=None) -> dict:
     '''
     runs the pipeline for the RSS feed, which includes:
     1. Extracting articles from the RSS feed
@@ -62,6 +62,11 @@ def pipeline():
         enriched_article = get_enriched_article(article)
         # add enriched articles to database
         store_article(enriched_article)
+
+    return {
+        "statusCode": 200,
+        "body": f"Successfully processed articles from RSS feed"
+    }
 
 
 if __name__ == "__main__":

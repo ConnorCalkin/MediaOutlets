@@ -2,5 +2,11 @@
 *.env*
 __pycache__/
 *.venv
-.pytest_cache/
+
 .terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+.pytest_cache/
+*.tfvars*
+
