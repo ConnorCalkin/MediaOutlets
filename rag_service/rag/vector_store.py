@@ -9,6 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Create client (local)
+# TODO: update to connect to remote Chroma instance when deployed
 client = chromadb.Client()
 
 # Create/get collection

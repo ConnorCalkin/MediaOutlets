@@ -2,9 +2,9 @@
 Purpose: Full pipeline for one article.
 """
 
-from rag.chunking import chunk_text
-from rag.embedding import get_embedding
-from rag.vector_store import add_chunks
+from chunking import chunk_text
+from embedding import get_embedding
+from vector_store import add_chunks
 
 import logging
 
