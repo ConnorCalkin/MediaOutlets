@@ -73,7 +73,7 @@ if __name__ == "__main__":
     )
 
     result = store_article({
-        "article_url": "https://bbc.co.uk/test-article",
+        "article_url": "https://bbc.co.uk/test-article2",
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
         "body": "This is a test article body.",
@@ -82,5 +82,3 @@ if __name__ == "__main__":
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
         "keywords": ["Electric Cars"]
     })
-
-    print(f"Stored: {result}")
