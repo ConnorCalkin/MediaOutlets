@@ -8,3 +8,10 @@ __pycache__/
 *.tfstate.backup
 .terraform.lock.hcl
 .pytest_cache/
+
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+.pytest_cache/
+*.tfvars*
