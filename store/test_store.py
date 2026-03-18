@@ -11,7 +11,7 @@ def valid_article():
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
         "body": "This is a test article body.",
-        "source_feed": "BBC Business",
+        "source": "BBC Business",
         "sentiment": {"polarity": 0.65, "label": "positive"},
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
         "keywords": ["Electric Cars"]
@@ -53,7 +53,7 @@ def test_missing_title():
             "article_url": "https://example.com",
             "published_date": "2026-03-17",
             "body": "Some body text.",
-            "source_feed": "BBC",
+            "source": "BBC",
             "sentiment": {"polarity": 0.5, "label": "positive"},
             "entities": {"PERSON": ["Test"]},
             "keywords": ["test"]
@@ -67,7 +67,7 @@ def test_missing_sentiment():
             "published_date": "2026-03-17",
             "title": "Test",
             "body": "Some body text.",
-            "source_feed": "BBC",
+            "source": "BBC",
             "entities": {"PERSON": ["Test"]},
             "keywords": ["test"]
         })
@@ -80,7 +80,7 @@ def test_missing_entities():
             "published_date": "2026-03-17",
             "title": "Test",
             "body": "Some body text.",
-            "source_feed": "BBC",
+            "source": "BBC",
             "sentiment": {"polarity": 0.5, "label": "positive"},
             "keywords": ["test"]
         })
@@ -93,7 +93,7 @@ def test_missing_keywords():
             "published_date": "2026-03-17",
             "title": "Test",
             "body": "Some body text.",
-            "source_feed": "BBC",
+            "source": "BBC",
             "sentiment": {"polarity": 0.5, "label": "positive"},
             "entities": {"PERSON": ["Test"]}
         })
