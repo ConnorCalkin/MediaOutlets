@@ -69,6 +69,12 @@ resource "aws_lambda_function" "rss_pipeline_lambda" {
   # Defaults: 128MB memory and 3s timeout
   memory_size = 128
   timeout     = 300
+
+  environment {
+    variables = {
+      OPENAI_API_KEY = var.OPENAI_API_KEY
+    } 
+  }
 }
 
 # EventBridge: The Scheduler : runs every 6 hours catches major news cycles like morning, afternoon, evening, and late night. 
