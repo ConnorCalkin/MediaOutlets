@@ -67,7 +67,7 @@ resource "aws_lambda_function" "rss_pipeline_lambda" {
   image_uri     = "${data.aws_ecr_repository.rss_pipeline.repository_url}:latest"
 
   # Defaults: 128MB memory and 3s timeout
-  memory_size = 128
+  memory_size = 256
   timeout     = 300
 
   environment {
