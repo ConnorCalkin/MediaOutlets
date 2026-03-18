@@ -11,13 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_chroma_client():
-    chroma_host = os.getenv("CHROMA_HOST")
+    chroma_host = os.getenv("CHROMA_HOST", "localhost")
 
-    if chroma_host:
-        return chromadb.HttpClient(host=chroma_host, port=8000)
-
-    # Default to in-memory client for local development
-    return chromadb.Client()
+    return chromadb.HttpClient(
+        host=chroma_host,
+        port=8000
+    )
 
 
 # Create client

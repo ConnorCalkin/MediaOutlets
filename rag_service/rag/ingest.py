@@ -2,6 +2,7 @@
 Purpose: Full pipeline for one article.
 """
 
+import hashlib
 from rag.chunking import chunk_text
 from rag.embedding import get_embedding
 from rag.vector_store import add_chunks
@@ -62,11 +63,20 @@ def store_article_chunks(chunks: list[str], metadata: dict, embeddings: list[lis
     add_chunks(chunks, metadata, embeddings)
 
 
-def ingest_article(article_id: str, title: str, url: str, text: str) -> None:
+def generate_article_id(url: str) -> str:
+    """
+    Generates a unique article ID based on the URL.
+    """
+    url = url.strip().rstrip("/").lower()
+    return hashlib.sha256(url.encode()).hexdigest()
+
+
+def ingest_article(title: str, url: str, text: str) -> None:
     """
     Chunks text, generate embeddings for each chunk, attach metadata, and store everything in Chroma.
     - prepares data for RAG
     """
+    article_id = generate_article_id(url)
     validate_article_text(text)
     chunks = generate_chunks(article_id, text)
     embeddings = generate_embeddings(chunks)
