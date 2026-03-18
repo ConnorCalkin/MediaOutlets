@@ -2,9 +2,10 @@
 Purpose: Full pipeline for one article.
 """
 
-from chunking import chunk_text
-from embedding import get_embedding
-from vector_store import add_chunks
+import hashlib
+from rag.chunking import chunk_text
+from rag.embedding import get_embedding
+from rag.vector_store import add_chunks
 
 import logging
 
@@ -44,7 +45,7 @@ def generate_embeddings(chunks: list[str]) -> list[list[float]]:
     return embeddings
 
 
-def build_metadata(article_id: str, title: str, url: str, source: str = None) -> dict:
+def build_metadata(article_id: str, title: str, url: str) -> dict:
     """
     Builds metadata dict for an article, which will be stored with each chunk.
     """
@@ -52,23 +53,34 @@ def build_metadata(article_id: str, title: str, url: str, source: str = None) ->
         "article_id": article_id,
         "title": title,
         "url": url,
-        "source": source or ""
     }
 
 
 def store_article_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]]) -> None:
+    """
+    Saves chunk text, embedding, and metadata in Chroma.
+    """
     add_chunks(chunks, metadata, embeddings)
 
 
-def ingest_article(article_id: str, title: str, url: str, text: str, source: str = None) -> None:
+def generate_article_id(url: str) -> str:
+    """
+    Generates a unique article ID based on the URL.
+    """
+    url = url.strip().rstrip("/").lower()
+    return hashlib.sha256(url.encode()).hexdigest()
+
+
+def ingest_article(title: str, url: str, text: str) -> None:
     """
     Chunks text, generate embeddings for each chunk, attach metadata, and store everything in Chroma.
     - prepares data for RAG
     """
+    article_id = generate_article_id(url)
     validate_article_text(text)
     chunks = generate_chunks(article_id, text)
     embeddings = generate_embeddings(chunks)
-    metadata = build_metadata(article_id, title, url, source)
+    metadata = build_metadata(article_id, title, url)
     store_article_chunks(chunks, metadata, embeddings)
 
     logger.info(f"Ingested article {article_id}")

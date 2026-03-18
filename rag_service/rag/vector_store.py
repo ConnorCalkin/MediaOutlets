@@ -2,15 +2,25 @@
 Purpose: Store chunks in Chroma.
 """
 
+import os
 import chromadb
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Create client (local)
-# TODO: update to connect to remote Chroma instance when deployed
-client = chromadb.Client()
+
+def get_chroma_client():
+    chroma_host = os.getenv("CHROMA_HOST", "localhost")
+
+    return chromadb.HttpClient(
+        host=chroma_host,
+        port=8000
+    )
+
+
+# Create client
+client = get_chroma_client()
 
 # Create/get collection
 collection = client.get_or_create_collection(name="articles")
