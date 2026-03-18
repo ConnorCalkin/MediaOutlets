@@ -21,13 +21,14 @@ def get_body_text_from_url(url: str) -> str:
     return get_body_text(html)
 
 
-def get_articles_from_rss(content: str) -> list[str]:
+def get_articles_from_rss(url: str) -> list[str]:
     '''
     Parses the RSS feed content and returns a list of all link elements.
     All of the articles are stored in an item element
     The children are used to populate the article title, body and published date
     '''
-    root = ET.fromstring(content)
+    rss_content = get_url_contents(url)
+    root = ET.fromstring(rss_content)
     items = root.findall('channel/item')
     for item in items:
         yield {
@@ -39,8 +40,7 @@ def get_articles_from_rss(content: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    rss_content = get_url_contents('https://www.ok.co.uk/?service=rss')
-    articles = get_articles_from_rss(rss_content)
+    articles = get_articles_from_rss('https://www.ok.co.uk/?service=rss')
     for article in articles:
         print(f"Title: {article['title']}")
         print(f"Published: {article['published']}")

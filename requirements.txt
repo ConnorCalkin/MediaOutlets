@@ -1,3 +1,11 @@
 bs4
 requests
 pytest
+flask
+openai
+chromadb
+python-dotenv
+spacy
+vaderSentiment
+boto3
+
