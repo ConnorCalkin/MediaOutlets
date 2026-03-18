@@ -60,7 +60,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # 4. The Lambda Function
 resource "aws_lambda_function" "rss_pipeline_lambda" {
   function_name = "rss-pipeline-service"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role          = aws_iam_role.lambda_execution_role.arn
   package_type  = "Image"
   
   # Using the data block to get the URI
