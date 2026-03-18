@@ -53,32 +53,34 @@ def store_article(article_data):
     if missing:
         raise ValueError(f"Missing required fields: {missing}")
 
-    article_data["scraped_at"] = datetime.now().isoformat()
-    article_data = convert_floats(article_data)
+    # Work on a copy to avoid mutating the caller-provided dictionary.
+    enriched_article_data = dict(article_data)
+    enriched_article_data["scraped_at"] = datetime.now().isoformat()
+    enriched_article_data = convert_floats(enriched_article_data)
 
-    logger.info("Storing article: %s", article_data["article_url"])
+    logger.info("Storing article: %s", enriched_article_data["article_url"])
 
     try:
         # Only write if no item with this article_url exists already.
         # Without this condition, put_item would silently overwrite duplicates.
         table.put_item(
-            Item=article_data,
+            Item=enriched_article_data,
             ConditionExpression="attribute_not_exists(article_url)"
         )
         logger.info("Successfully stored article: %s",
-                    article_data["article_url"])
+                    enriched_article_data["article_url"])
         return True
 
     except ClientError as e:
         # Gracefully handle the case where the article already exists (duplicate).
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             logger.warning("Duplicate article, skipping: %s",
-                           article_data["article_url"])
+                           enriched_article_data["article_url"])
             return False
         else:
             # Any other AWS error (permissions, throttling, table not found, etc.)
             logger.error("Failed to store article: %s - %s",
-                         article_data["article_url"], str(e))
+                         enriched_article_data["article_url"], str(e))
             raise e
 
 
