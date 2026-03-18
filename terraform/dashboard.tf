@@ -51,12 +51,6 @@ resource "aws_ecs_task_definition" "dashboard-task" {
           protocol      = "tcp"
         }
       ]
-      environment = [
-            {
-            name  = "OPENAI_API_KEY", 
-                value = var.OPENAI_API_KEY
-            }
-        ]
     }
   ])
 }
