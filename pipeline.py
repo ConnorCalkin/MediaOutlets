@@ -12,6 +12,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 def get_enriched_article(article):
+    '''
+    Add the enriched information to the article dictionary
+    1. Extract keywords
+    2. Extract named entities
+    3. Analyse sentiment
+    '''
     return {
         'title': article['title'],
         'published': article['published'],
@@ -23,6 +29,7 @@ def get_enriched_article(article):
 
 
 def ingest(article) -> None:
+    '''Wrapper around the ingest_article function to handle exceptions and log errors'''
     try:
         ingest_article(
             article_id=article['url'],
@@ -37,9 +44,18 @@ def ingest(article) -> None:
 
 
 def pipeline():
+    '''
+    runs the pipeline for the RSS feed, which includes:
+    1. Extracting articles from the RSS feed
+    2. Enriching the article with keywords, entities and sentiment analysis
+    3. Ingesting the enriched article into the vector store
+    4 TODO: Add enriched articles to database
+    '''
     articles = get_articles_from_rss(RSS_FEED)
     for article in articles:
+        # ingest articles into chromadb for RAG server
         ingest(article)
+        # add keywords, entities and sentiment analysis to article dictionary
         enriched_article = get_enriched_article(article)
         # TODO: Add enriched articles to database
 
