@@ -25,8 +25,24 @@ def convert_floats(data):
 
 def store_article(article_data):
     """
-    Writes an enriched article record to the DynamoDB table.
-    Returns True on success, False on failure.
+    Write an enriched article record to the DynamoDB table.
+
+    Returns
+    -------
+    bool
+        True if the article was stored successfully.
+        False if the article already exists and the write was skipped
+        due to the conditional check (duplicate article).
+
+    Raises
+    ------
+    TypeError
+        If ``article_data`` is not a dictionary.
+    ValueError
+        If one or more required fields are missing from ``article_data``.
+    botocore.exceptions.ClientError
+        If a non-duplicate AWS DynamoDB error occurs (for example,
+        permissions issues, throttling, or table not found).
     """
     if not isinstance(article_data, dict):
         raise TypeError("Input must be a dictionary")
