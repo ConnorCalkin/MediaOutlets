@@ -11,3 +11,17 @@ variable "private_subnet_ids" {
         "subnet-03d6ad56638c7aa28"
     ]
 }
+
+variable "public_subnet_ids" {
+    type = list(string)
+    default = [
+        "subnet-0cfeaca0e941dea5b",
+        "subnet-055ac264d45bec709",
+        "subnet-046ec8b4e41d59ea8"
+    ]
+}
+
+variable "aws_region" {
+    type    = string
+    default = "eu-west-2"
+}

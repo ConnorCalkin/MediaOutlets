@@ -24,3 +24,12 @@ resource "aws_security_group_rule" "efs_ingress" {
     security_group_id        = aws_security_group.chroma_efs.id
     source_security_group_id = aws_security_group.chroma_ecs.id
 }
+
+resource "aws_security_group_rule" "chroma_ecs_egress_all" {
+    type              = "egress"
+    from_port         = 0
+    to_port           = 0
+    protocol          = "-1"
+    security_group_id = aws_security_group.chroma_ecs.id
+    cidr_blocks       = ["0.0.0.0/0"]
+}
