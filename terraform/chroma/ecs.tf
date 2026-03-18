@@ -89,7 +89,7 @@ resource "aws_ecs_service" "chroma" {
     name            = "c22-dashboard-divas-chroma-service"
     cluster         = aws_ecs_cluster.chroma.id
     task_definition = aws_ecs_task_definition.chroma.arn
-    desired_count   = 1
+    desired_count   = 0
     launch_type     = "FARGATE"
     platform_version = "1.4.0"
 
