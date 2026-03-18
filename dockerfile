@@ -1,18 +1,10 @@
-# Use stable Python version
-FROM python:3.12-slim
+FROM public.ecr.aws/lambda/python:3.12
+
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Prevent Python from writing .pyc files and buffering stdout
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies (needed for spaCy sometimes)
-RUN apt-get update && apt-get install -y \
-    gcc \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (better caching)
 COPY requirements.txt .
@@ -43,4 +35,4 @@ COPY rag_service/rag/vector_store.py .
 COPY pipeline.py .
 
 # Default command
-CMD ["python", "pipeline.py"]
+CMD [ "pipeline.pipeline" ]

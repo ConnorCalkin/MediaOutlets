@@ -60,15 +60,21 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # 4. The Lambda Function
 resource "aws_lambda_function" "rss_pipeline_lambda" {
   function_name = "rss-pipeline-service"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role          = aws_iam_role.lambda_execution_role.arn
   package_type  = "Image"
   
   # Using the data block to get the URI
   image_uri     = "${data.aws_ecr_repository.rss_pipeline.repository_url}:latest"
 
   # Defaults: 128MB memory and 3s timeout
-  memory_size = 128
+  memory_size = 256
   timeout     = 300
+
+  environment {
+    variables = {
+      OPENAI_API_KEY = var.OPENAI_API_KEY
+    } 
+  }
 }
 
 # EventBridge: The Scheduler : runs every 6 hours catches major news cycles like morning, afternoon, evening, and late night. 
