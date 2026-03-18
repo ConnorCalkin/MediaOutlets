@@ -150,10 +150,7 @@ def test_duplicate_does_not_raise(mock_table, valid_article):
         {"Error": {"Code": "ConditionalCheckFailedException", "Message": "Duplicate"}},
         "PutItem"
     )
-    try:
-        store_article(valid_article)
-    except Exception:
-        pytest.fail("Duplicate article should not raise an exception")
+    store_article(valid_article)
 
 
 # --- Other AWS errors ---
