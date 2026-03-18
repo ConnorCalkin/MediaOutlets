@@ -5,6 +5,7 @@ Purpose: Expose RAG as API service.
 from query_functions import process_query
 from flask import Flask, jsonify, request
 import logging
+from rag.ingest import ingest_article
 
 from dotenv import load_dotenv
 
@@ -57,4 +58,10 @@ def query():
 
 
 if __name__ == "__main__":
+    ingest_article(
+        article_id="test-1",
+        title="Angela Rayner's explosive speech reignites leadership speculation",
+        url="https://www.bbc.co.uk/news/articles/cpd8d10n9x5o",
+        text="Angela Rayner's fiery speech at the Labour conference has reignited speculation about her future in the party leadership. The Labour Party's deputy leader delivered a passionate address, criticizing the government's handling of key issues and calling for unity within the party. Her remarks have been interpreted by some as a challenge to current leader Keir Starmer, leading to renewed discussions about potential leadership changes within Labour.",
+    )
     app.run(debug=True)

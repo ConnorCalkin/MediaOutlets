@@ -44,7 +44,7 @@ def generate_embeddings(chunks: list[str]) -> list[list[float]]:
     return embeddings
 
 
-def build_metadata(article_id: str, title: str, url: str, source: str = None) -> dict:
+def build_metadata(article_id: str, title: str, url: str) -> dict:
     """
     Builds metadata dict for an article, which will be stored with each chunk.
     """
@@ -52,7 +52,6 @@ def build_metadata(article_id: str, title: str, url: str, source: str = None) ->
         "article_id": article_id,
         "title": title,
         "url": url,
-        "source": source or ""
     }
 
 
@@ -63,7 +62,7 @@ def store_article_chunks(chunks: list[str], metadata: dict, embeddings: list[lis
     add_chunks(chunks, metadata, embeddings)
 
 
-def ingest_article(article_id: str, title: str, url: str, text: str, source: str = None) -> None:
+def ingest_article(article_id: str, title: str, url: str, text: str) -> None:
     """
     Chunks text, generate embeddings for each chunk, attach metadata, and store everything in Chroma.
     - prepares data for RAG
@@ -71,7 +70,7 @@ def ingest_article(article_id: str, title: str, url: str, text: str, source: str
     validate_article_text(text)
     chunks = generate_chunks(article_id, text)
     embeddings = generate_embeddings(chunks)
-    metadata = build_metadata(article_id, title, url, source)
+    metadata = build_metadata(article_id, title, url)
     store_article_chunks(chunks, metadata, embeddings)
 
     logger.info(f"Ingested article {article_id}")
