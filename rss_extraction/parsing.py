@@ -1,48 +1,54 @@
+import logging
 import requests
 import xml.etree.ElementTree as ET
-import logging
 from scraping import get_body_text
-from utils import debug_generator
+
+logger = logging.getLogger("parsing")
 
 
-@debug_generator
-def get_url_contents(url: str) -> str:
-    '''Fetches the content from the specified URL and returns it as a string.'''
-    resp = requests.get(url)
-    if resp.status_code != 200:
+def get_articles_from_rss(url: str) -> list[dict]:
+    """
+    Fetches an RSS feed and yields enriched article dictionaries.
+    For each item in the feed, the article body is downloaded and
+    extracted using newspaper3k via the scraping module.
+    """
+    logger.info("Fetching RSS feed: %s", url)
+
+    response = requests.get(url)
+    if response.status_code != 200:
         raise Exception(
-            f"Failed to fetch URL: {url} with status code: {resp.status_code}")
-    return resp.text
+            f"Failed to fetch RSS feed: {url} (status {response.status_code})")
 
+    root = ET.fromstring(response.text)
+    items = root.findall("channel/item")
 
-def get_body_text_from_url(url: str) -> str:
-    '''Fetches the content from the specified URL and returns the text content of the article element.'''
-    html = get_url_contents(url)
-    return get_body_text(html)
+    logger.info("Found %d articles in feed", len(items))
 
-
-def get_articles_from_rss(url: str) -> list[str]:
-    '''
-    Parses the RSS feed content and returns a list of all link elements.
-    All of the articles are stored in an item element
-    The children are used to populate the article title, body and published date
-    '''
-    rss_content = get_url_contents(url)
-    root = ET.fromstring(rss_content)
-    items = root.findall('channel/item')
     for item in items:
+        article_url = item.find("link").text
+        title = item.find("title").text
+        published = item.find("pubDate").text
+
+        logger.info("Processing article: %s", article_url)
+
+        body = get_body_text(article_url)
+
         yield {
-            'title': item.find('title').text,
-            'url': item.find('link').text,
-            'body': get_body_text_from_url(item.find('link').text),
-            'published': item.find('pubDate').text
+            "title": title,
+            "url": article_url,
+            "body": body,
+            "published": published,
         }
 
 
 if __name__ == "__main__":
-    articles = get_articles_from_rss('https://www.ok.co.uk/?service=rss')
-    for article in articles:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    for article in get_articles_from_rss("https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml"):
         print(f"Title: {article['title']}")
         print(f"Published: {article['published']}")
-        print(f"Body: {article['body']}\n")
+        print(f"Body: {article['body'][:200]}...\n")
         break

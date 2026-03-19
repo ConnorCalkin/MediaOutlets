@@ -8,7 +8,7 @@ import logging
 
 print("import works")
 
-RSS_FEED = 'https://www.ok.co.uk/?service=rss'
+RSS_FEED = 'https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml'
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
