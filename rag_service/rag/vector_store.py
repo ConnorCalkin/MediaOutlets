@@ -17,10 +17,11 @@ client = chromadb.Client()
 
 def get_chroma_client():
     chroma_host = os.getenv("CHROMA_HOST", "localhost")
+    chroma_port = os.getenv("CHROMA_PORT", "8000")
 
     return chromadb.HttpClient(
         host=chroma_host,
-        port=8000
+        port=chroma_port
     )
 
 
