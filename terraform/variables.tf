@@ -15,3 +15,9 @@ variable "vpc_id" {
     type        = string
     default = "vpc-03f0d39570fbaa750"
 }
+
+variable "CHROMA_HOST" {
+    description = "Chroma host for the pipeline"
+    type        = string
+    default = ""
+}
