@@ -2,6 +2,8 @@
 Purpose: Simple entry point to test RAG ingestion into Chroma.
 """
 
+from ingest import ingest_article
+
 
 def main():
     article_id = "test-001"
