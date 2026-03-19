@@ -30,7 +30,10 @@ def get_articles_from_rss(url: str):
 
         logger.info("Processing article: %s", link.text)
 
-        yield get_article_data(link.text)
+        article_data = get_article_data(link.text)
+        article_data["published_date"] = item.find(
+            "pubDate").text if item.find("pubDate") is not None else None
+        yield article_data
 
 
 def get_article_data(url: str) -> dict:
@@ -45,7 +48,6 @@ def get_article_data(url: str) -> dict:
         "title": article.title,
         "article_url": url,
         "body": article.text,
-        "published_date": article.publish_date.isoformat() if article.publish_date else None,
         "source": article.source_url
     }
 
@@ -56,7 +58,7 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    for article in get_articles_from_rss("https://www.tmz.com/rss.xml"):
+    for article in get_articles_from_rss("https://feeds.bbci.co.uk/news/business/rss.xml"):
         print(f"Title: {article['title']}")
         print(f"Published: {article['published_date']}")
         print(f"Body: {article['body'][:200]}...\n")
