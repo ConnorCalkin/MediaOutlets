@@ -9,15 +9,16 @@ def validate_entities(entities):
     """
     Cleans up extracted entities by:
     1. Removing entities longer than 4 words
-    2. Removing single character entities
+    2. Removing entities with 2 characters or less
     3. Removing PERSON entities that aren't capitalised
     4. Removing ORG entities that contain other ORG entities within them (keeping the shorter version)
     """
     validated = {}
+    all_dropped = []
 
     for label, names in entities.items():
         # Filter by length
-        filtered = [name for name in names if 1 < len(
+        filtered = [name for name in names if 2 < len(
             name.strip()) and len(name.split()) <= 4]
 
         # PERSON entities must be capitalised
@@ -34,7 +35,12 @@ def validate_entities(entities):
                     unique.append(name)
             filtered = unique
 
+        dropped = set(names) - set(filtered)
+        all_dropped.extend(dropped)
         validated[label] = filtered
+
+    if all_dropped:
+        logger.info("Dropped entities: %s", all_dropped)
 
     return validated
 
