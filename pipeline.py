@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def get_enriched_article(article):
+def get_enriched_article(article: dict) -> dict:
     '''
     Add the enriched information to the article dictionary
     1. Extract keywords
@@ -31,7 +31,7 @@ def get_enriched_article(article):
     }
 
 
-def ingest_wrapper(article) -> None:
+def ingest_wrapper(article: dict) -> None:
     '''Wrapper around the ingest_article function to handle exceptions and log errors'''
     try:
         ingest_article(
@@ -46,7 +46,7 @@ def ingest_wrapper(article) -> None:
         logger.error(f"Error ingesting article {article['article_url']}: {e}")
 
 
-def store_wrapper(article) -> None:
+def store_wrapper(article: dict) -> None:
     '''Wrapper around the store_article function to handle exceptions and log errors'''
     try:
         store_article(article)

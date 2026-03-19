@@ -10,7 +10,7 @@ dynamodb = boto3.resource("dynamodb", region_name="eu-west-2")
 table = dynamodb.Table("c22-dashboard-divas-db")
 
 
-def convert_floats(data):
+def convert_floats(data: dict) -> dict:
     """
     Recursively converts float values to Decimal for DynamoDB compatibility.
     """
@@ -23,7 +23,7 @@ def convert_floats(data):
     return data
 
 
-def validate_article(article) -> bool:
+def validate_article(article: dict) -> bool:
     """
     Validates that the article contains all required fields.
     """
