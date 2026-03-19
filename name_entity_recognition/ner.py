@@ -45,15 +45,10 @@ def validate_entities(entities):
 
 
 def extract_entities(article_text):
-
-
-<< << << < Updated upstream
-== == == =
    """
     Extracts PERSON and ORG entities from the given article text,
     returning a dictionary with entity types as keys and lists of unique entity names as values.
     """
->>>>>> > Stashed changes
    if not isinstance(article_text, str):
         raise TypeError("Input must be a string")
 
@@ -83,11 +78,8 @@ def extract_entities(article_text):
 
     return entities
 
-
-<<<<<< < Updated upstream
 print(extract_entities(
     "Elon Musk is the CEO of Tesla. Apple Inc. is a major tech company."))
-== =====
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
@@ -105,4 +97,3 @@ if __name__ == "__main__":
             EV market. Goldman Sachs and Goldman both issued bullish ratings."""
         )
     )
->>>>>> > Stashed changes
