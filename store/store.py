@@ -92,6 +92,25 @@ def is_duplicate(article_url: str) -> bool:
 
 
 def store_article(article_data: dict) -> None:
+    '''
+    Write an enriched article record to the DynamoDB table.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    TypeError
+        If ``article_data`` is not a dictionary.
+    ValueError
+        If one or more required fields are missing from ``article_data``.
+        If an article with the same URL already exists in the database.
+    botocore.exceptions.ClientError
+        If a non-duplicate AWS DynamoDB error occurs (for example,
+        permissions issues, throttling, or table not found).
+    Validates that the article contains all required fields.
+    '''
 
     validate_article(article_data)
 
