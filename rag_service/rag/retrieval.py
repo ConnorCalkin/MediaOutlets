@@ -2,6 +2,8 @@
 Purpose: Find relevant chunks for a question.
 """
 
+from embedding import get_embedding
+from vector_store import collection
 
 import logging
 
