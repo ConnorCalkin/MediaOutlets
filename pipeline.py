@@ -21,10 +21,10 @@ s3 = boto3.client("s3", region_name="eu-west-2")
 
 def upload_to_s3(article: dict) -> None:
     """Uploads article body and URL to S3 as a JSON file."""
-    key = f"articles/{article['url'].replace('https://', '').replace('/', '_')}.json"
+    key = f"articles/{article['article_url'].replace('https://', '').replace('/', '_')}.json"
 
     data = {
-        "url": article["url"],
+        "article_url": article["article_url"],
         "body": article["body"]
     }
 
