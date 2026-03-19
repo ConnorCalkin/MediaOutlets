@@ -11,6 +11,7 @@ def valid_article():
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
         "source": "BBC Business",
+        "body": "This is a test article body.",
         "sentiment": {"polarity": 0.65, "label": "positive"},
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
         "keywords": ["Electric Cars"]
