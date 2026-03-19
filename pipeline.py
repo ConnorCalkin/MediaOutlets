@@ -41,18 +41,18 @@ def ingest_wrapper(article: dict) -> None:
             text=article['body'],
             source=RSS_FEED
         )
-        logger.info(f"Successfully ingested article: {article['article_url']}")
+        logger.info(f"Successfully ingested article: {article['url']}")
     except Exception as e:
-        logger.error(f"Error ingesting article {article['article_url']}: {e}")
+        logger.error(f"Error ingesting article {article['url']}: {e}")
 
 
 def store_wrapper(article: dict) -> None:
     '''Wrapper around the store_article function to handle exceptions and log errors'''
     try:
         store_article(article)
-        logger.info(f"Successfully stored article: {article['article_url']}")
+        logger.info(f"Successfully stored article: {article['url']}")
     except Exception as e:
-        logger.error(f"Error storing article {article['article_url']}: {e}")
+        logger.error(f"Error storing article {article['url']}: {e}")
 
 
 def pipeline(event=None, context=None) -> dict:
@@ -66,7 +66,7 @@ def pipeline(event=None, context=None) -> dict:
     articles = get_articles_from_rss(RSS_FEED)
     for article in articles:
         # ingest articles into chromadb for RAG server
-        # ingest_wrapper(article)
+        ingest_wrapper(article)
         # add keywords, entities and sentiment analysis to article dictionary
         enriched_article = get_enriched_article(article)
         # add enriched article to database
