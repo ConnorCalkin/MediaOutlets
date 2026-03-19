@@ -34,7 +34,7 @@ def validate_article(article: dict) -> bool:
 
     # Validate required fields and primary key format based on the row type definition
     required_fields = ["article_url", "published_date", "title",
-                       "body", "source", "sentiment", "entities", "keywords"]
+                       "source", "sentiment", "entities", "keywords"]
     missing_fields = [
         field for field in required_fields if field not in article]
     if missing_fields:

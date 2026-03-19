@@ -1,16 +1,14 @@
 import logging
 import requests
 import xml.etree.ElementTree as ET
-from scraping import get_body_text
+from newspaper import Article
 
-logger = logging.getLogger("parsing")
+logger = logging.getLogger("scraping")
 
 
-def get_articles_from_rss(url: str) -> list[dict]:
+def get_articles_from_rss(url: str):
     """
     Fetches an RSS feed and yields enriched article dictionaries.
-    For each item in the feed, the article body is downloaded and
-    extracted using newspaper3k via the scraping module.
     """
     logger.info("Fetching RSS feed: %s", url)
 
@@ -25,20 +23,31 @@ def get_articles_from_rss(url: str) -> list[dict]:
     logger.info("Found %d articles in feed", len(items))
 
     for item in items:
-        article_url = item.find("link").text
-        title = item.find("title").text
-        published = item.find("pubDate").text
+        link = item.find("link")
+        if link is None or not link.text:
+            logger.warning("Skipping article with no URL")
+            continue
 
-        logger.info("Processing article: %s", article_url)
+        logger.info("Processing article: %s", link.text)
 
-        body = get_body_text(article_url)
+        yield get_article_data(link.text)
 
-        yield {
-            "title": title,
-            "url": article_url,
-            "body": body,
-            "published": published,
-        }
+
+def get_article_data(url: str) -> dict:
+    """
+    Downloads and extracts article data from a given URL using newspaper3k.
+    Returns a dictionary containing the article's title, URL, body text, and published date.
+    """
+    article = Article(url)
+    article.download()
+    article.parse()
+    return {
+        "title": article.title,
+        "article_url": url,
+        "body": article.text,
+        "published_date": article.publish_date.isoformat() if article.publish_date else None,
+        "source": article.source_url
+    }
 
 
 if __name__ == "__main__":
@@ -47,8 +56,10 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    for article in get_articles_from_rss("https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml"):
+    for article in get_articles_from_rss("https://www.tmz.com/rss.xml"):
         print(f"Title: {article['title']}")
-        print(f"Published: {article['published']}")
+        print(f"Published: {article['published_date']}")
         print(f"Body: {article['body'][:200]}...\n")
+        print(f"URL: {article['article_url']}\n")
+        print(f'Source: {article["source"]}\n')
         break
