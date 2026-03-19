@@ -34,6 +34,7 @@ def get_enriched_article(article: dict) -> dict:
 
 def ingest_wrapper(article: dict) -> None:
     '''Wrapper around the ingest_article function to handle exceptions and log errors'''
+    logger.info(f"Starting ingestion for article: {article['url']}")
     try:
         ingest_article(
             title=article['title'],
@@ -50,9 +51,9 @@ def store_wrapper(article: dict) -> None:
     '''Wrapper around the store_article function to handle exceptions and log errors'''
     try:
         store_article(article)
-        logger.info(f"Successfully stored article: {article['url']}")
+        logger.info(f"Successfully stored article: {article['article_url']}")
     except Exception as e:
-        logger.error(f"Error storing article {article['url']}: {e}")
+        logger.error(f"Error storing article {article['article_url']}: {e}")
 
 
 def pipeline(event=None, context=None) -> dict:
