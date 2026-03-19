@@ -159,9 +159,9 @@ def test_validate_empty_lists():
 def test_duplicate_orgs_collapsed():
     text = "Apple Apple Apple in Apple Enterprise Apple HQ Apple Food Apple iPhone"
     result = extract_entities(text)
-    if "ORG" in result:
-        apple_count = sum(1 for name in result["ORG"] if "Apple" in name)
-        assert apple_count == 1
+    assert "ORG" in result, f"Expected ORG entities for text, got {result}"
+    apple_count = sum(1 for name in result.get("ORG", []) if "Apple" in name)
+    assert apple_count == 1, f"Expected one Apple entry, got {result.get('ORG', [])}"
 
 
 def test_full_article():
@@ -172,10 +172,3 @@ def test_full_article():
     result = extract_entities(text)
     assert "Elon Musk" in result.get("PERSON", [])
 
-
-def test_known_orgs_in_musk_tesla_sentence():
-    result = extract_entities("Elon Musk is the CEO of Tesla.")
-    assert "Tesla" in result.get("ORG", [])
-    assert "Apple" in result.get("ORG", [])
-    assert "Apple Inc." not in result.get("ORG", [])
-    assert "Tesla Inc." not in result.get("ORG", [])
