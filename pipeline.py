@@ -5,12 +5,39 @@ from sentiment_analysis import analyse_sentiment
 from rag.ingest import ingest_article
 from store import store_article
 import logging
+import boto3
+import json
 
 RSS_FEEDS = ['https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml',
              'https://feeds.bbci.co.uk/news/business/rss.xml']
+BUCKET_NAME = "c22-dashboard-divas-article-storage"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+
+s3 = boto3.client("s3", region_name="eu-west-2")
+
+
+def upload_to_s3(article: dict) -> None:
+    """Uploads article body and URL to S3 as a JSON file."""
+    key = f"articles/{article['url'].replace('https://', '').replace('/', '_')}.json"
+
+    data = {
+        "url": article["url"],
+        "body": article["body"]
+    }
+
+    try:
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=key,
+            Body=json.dumps(data),
+            ContentType="application/json"
+        )
+        logger.info("Uploaded to S3: %s", key)
+    except Exception as e:
+        logger.error("Failed to upload to S3: %s - %s", article["url"], e)
 
 
 def get_enriched_article(article: dict) -> dict:
@@ -66,10 +93,11 @@ def pipeline(event=None, context=None) -> dict:
         logger.info("Processing feed: %s", feed)
         articles = get_articles_from_rss(feed)
         for article in articles:
+            upload_to_s3(article)
             # ingest articles into chromadb for RAG server
             # ingest_wrapper(article)
             # add keywords, entities and sentiment analysis to article dictionary
-            enriched_article = get_enriched_article(article, feed)
+            enriched_article = get_enriched_article(article)
             # add enriched article to database
             store_wrapper(enriched_article)
 
