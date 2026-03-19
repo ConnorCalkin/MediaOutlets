@@ -1,5 +1,4 @@
 from ner import extract_entities, validate_entities
-from ner import extract_entities
 import pytest
 
 # --- extract_entities: Invalid inputs ---
