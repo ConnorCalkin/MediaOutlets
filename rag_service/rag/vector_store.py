@@ -20,6 +20,13 @@ def get_chroma_client():
     )
 
 
+# Create client
+client = get_chroma_client()
+
+# Create/get collection
+collection = client.get_or_create_collection(name="articles")
+
+
 def add_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]]):
     """
     Saves chunk text, embedding, and metadata.
