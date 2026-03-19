@@ -2,7 +2,7 @@ from parsing import get_articles_from_rss
 from extractkeywords import extract_keywords_spacy
 from ner import extract_entities
 from sentiment_analysis import analyse_sentiment
-from rag.ingest import ingest_article
+from ingest import ingest_article
 from store import store_article
 import logging
 
@@ -42,9 +42,9 @@ def ingest_wrapper(article: dict) -> None:
             text=article['body'],
             source=RSS_FEED
         )
-        logger.info(f"Successfully ingested article: {article['url']}")
+        logger.info(f"Successfully ingested article: {article['article_url']}")
     except Exception as e:
-        logger.error(f"Error ingesting article {article['url']}: {e}")
+        logger.error(f"Error ingesting article {article['article_url']}: {e}")
 
 
 def store_wrapper(article: dict) -> None:
