@@ -2,13 +2,8 @@ import spacy
 import logging
 
 logger = logging.getLogger("ner")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 
 nlp = spacy.load("en_core_web_sm")
-
 
 def validate_entities(entities):
     """
