@@ -72,9 +72,10 @@ resource "aws_lambda_function" "rss_pipeline_lambda" {
 
   environment {
     variables = {
-      OPENAI_API_KEY = var.OPENAI_API_KEY
-      CHROMA_HOST = var.CHROMA_HOST
-    } 
+      CHROMA_HOST    = var.chroma_host
+      CHROMA_PORT    = var.chroma_port
+      OPENAI_API_KEY = var.openai_api_key
+    }
   }
 }
 

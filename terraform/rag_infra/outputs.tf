@@ -1,0 +1,3 @@
+output "rag_api_url" {
+    value = aws_apigatewayv2_api.rag_api.api_endpoint
+}

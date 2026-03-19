@@ -6,6 +6,8 @@ from rag.ingest import ingest_article
 from store import store_article
 import logging
 
+print("import works")
+
 RSS_FEED = 'https://www.ok.co.uk/?service=rss'
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,6 @@ def ingest_wrapper(article: dict) -> None:
     '''Wrapper around the ingest_article function to handle exceptions and log errors'''
     try:
         ingest_article(
-            article_id=article['url'],
             title=article['title'],
             url=article['url'],
             text=article['body'],
