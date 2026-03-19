@@ -3,6 +3,7 @@ from extractkeywords import extract_keywords_spacy
 from ner import extract_entities
 from sentiment_analysis import analyse_sentiment
 from ingest import ingest_article
+from store import store_article
 import logging
 
 print("import works")
@@ -22,11 +23,12 @@ def get_enriched_article(article):
     '''
     return {
         'title': article['title'],
-        'published': article['published'],
-        'url': article['url'],
+        'published_date': article['published'],
+        'article_url': article['url'],
         'keywords': extract_keywords_spacy(article['body']),
         'entities': extract_entities(article['body']),
-        'sentiment': analyse_sentiment(article['body'])
+        'sentiment': analyse_sentiment(article['body']),
+        'source': RSS_FEED
     }
 
 
@@ -44,13 +46,13 @@ def ingest(article) -> None:
         logger.error(f"Error ingesting article {article['url']}: {e}")
 
 
-def pipeline():
+def pipeline(event=None, context=None) -> dict:
     '''
     runs the pipeline for the RSS feed, which includes:
     1. Extracting articles from the RSS feed
     2. Enriching the article with keywords, entities and sentiment analysis
     3. Ingesting the enriched article into the vector store
-    4 TODO: Add enriched articles to database
+    4. Add enriched articles to database
     '''
     articles = get_articles_from_rss(RSS_FEED)
     for article in articles:
@@ -58,7 +60,13 @@ def pipeline():
         ingest(article)
         # add keywords, entities and sentiment analysis to article dictionary
         enriched_article = get_enriched_article(article)
-        # TODO: Add enriched articles to database
+        # add enriched articles to database
+        store_article(enriched_article)
+
+    return {
+        "statusCode": 200,
+        "body": f"Successfully processed articles from RSS feed"
+    }
 
 
 if __name__ == "__main__":

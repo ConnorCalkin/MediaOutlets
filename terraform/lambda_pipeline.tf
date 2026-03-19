@@ -39,7 +39,7 @@ resource "aws_iam_policy" "lambda_permissions"{
       {
         "Effect"   = "Allow"
         "Action"   = ["s3:PutObject", "s3:ListBucket"]
-        "Resource" = ["arn:aws:s3:::your-bucket-name", "arn:aws:s3:::your-bucket-name/*"]
+        "Resource" = ["arn:aws:s3:::c22-dashboard-divas-article-storage", "arn:aws:s3:::c22-dashboard-divas-article-storage/*"]
       },
         #Allow the Lambda function to write logs to CloudWatch
       {
@@ -60,14 +60,14 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 # 4. The Lambda Function
 resource "aws_lambda_function" "rss_pipeline_lambda" {
   function_name = "rss-pipeline-service"
-  role          = aws_iam_role.lambda_exec_role.arn
+  role          = aws_iam_role.lambda_execution_role.arn
   package_type  = "Image"
   
   # Using the data block to get the URI
   image_uri     = "${data.aws_ecr_repository.rss_pipeline.repository_url}:latest"
 
   # Defaults: 128MB memory and 3s timeout
-  memory_size = 128
+  memory_size = 256
   timeout     = 300
 
   environment {

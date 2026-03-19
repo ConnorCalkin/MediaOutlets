@@ -1,0 +1,14 @@
+
+FROM python:3.9-slim
+
+#Create a non-root user to run the application
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY dashboard.py .
+COPY extract.py .
+
+CMD streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0
