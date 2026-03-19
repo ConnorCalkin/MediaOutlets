@@ -23,7 +23,6 @@ def get_enriched_article(article: dict) -> dict:
         'title': article['title'],
         'published_date': article['published'],
         'article_url': article['url'],
-        'body': article['body'],
         'keywords': extract_keywords_spacy(article['body']),
         'entities': extract_entities(article['body']),
         'sentiment': analyse_sentiment(article['body']),

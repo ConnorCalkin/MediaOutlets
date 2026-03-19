@@ -39,7 +39,7 @@ resource "aws_iam_policy" "lambda_permissions"{
       {
         "Effect"   = "Allow"
         "Action"   = ["s3:PutObject", "s3:ListBucket"]
-        "Resource" = ["arn:aws:s3:::your-bucket-name", "arn:aws:s3:::your-bucket-name/*"]
+        "Resource" = ["arn:aws:s3:::c22-dashboard-divas-article-storage", "arn:aws:s3:::c22-dashboard-divas-article-storage/*"]
       },
         #Allow the Lambda function to write logs to CloudWatch
       {

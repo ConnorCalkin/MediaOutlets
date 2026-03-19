@@ -149,7 +149,6 @@ if __name__ == "__main__":
         "article_url": "https://bbc.co.uk/test-article2",
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
-        "body": "This is a test article body.",
         "source": "BBC Business",
         "sentiment": {"polarity": 0.65, "label": "positive"},
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
