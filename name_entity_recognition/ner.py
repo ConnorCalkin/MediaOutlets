@@ -45,11 +45,11 @@ def validate_entities(entities):
 
 
 def extract_entities(article_text):
-   """
+    """
     Extracts PERSON and ORG entities from the given article text,
     returning a dictionary with entity types as keys and lists of unique entity names as values.
     """
-   if not isinstance(article_text, str):
+    if not isinstance(article_text, str):
         raise TypeError("Input must be a string")
 
     article_text = article_text.strip()
