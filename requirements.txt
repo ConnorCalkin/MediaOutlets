@@ -8,4 +8,4 @@ python-dotenv
 spacy
 vaderSentiment
 boto3
-
+newspaper3k
