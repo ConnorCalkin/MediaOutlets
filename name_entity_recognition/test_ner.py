@@ -173,7 +173,7 @@ def test_full_article():
     assert "Elon Musk" in result.get("PERSON", [])
 
 
-def test_known_org():
+def test_known_orgs_in_musk_tesla_sentence():
     result = extract_entities("Elon Musk is the CEO of Tesla.")
     assert "Tesla" in result.get("ORG", [])
     assert "Apple" in result.get("ORG", [])
