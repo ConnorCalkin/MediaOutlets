@@ -39,7 +39,3 @@ variable "chroma_port" {
     type    = number
     default = 8000
 }
-
-variable "image_uri" {
-    type = string
-}

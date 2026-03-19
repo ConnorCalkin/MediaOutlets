@@ -65,8 +65,7 @@ def ingest_wrapper(article: dict) -> None:
         ingest_article(
             title=article['title'],
             url=article['article_url'],
-            text=article['body'],
-            source=article['source']
+            text=article['body']
         )
         logger.info(f"Successfully ingested article: {article['article_url']}")
     except Exception as e:
