@@ -78,8 +78,6 @@ def extract_entities(article_text):
 
     return entities
 
-print(extract_entities(
-    "Elon Musk is the CEO of Tesla. Apple Inc. is a major tech company."))
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
