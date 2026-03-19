@@ -59,12 +59,13 @@ def get_rows_from_article(article: dict) -> list[dict]:
     })
 
     # additional rows for each entity and keyword, linking back to the main article row via the article_url
-    for entity_type, entity in article["entities"].items():
-        rows.append({
-            "pk": f"entity#{entity}",
-            "sk": article["article_url"],
-            "type": entity_type
-        })
+    for entity_type, entities in article["entities"].items():
+        for entity in entities:
+            rows.append({
+                "pk": f"entity#{entity}",
+                "sk": article["article_url"],
+                "type": entity_type
+            })
     for keyword in article["keywords"]:
         rows.append({
             "pk": f"keyword#{keyword}",
