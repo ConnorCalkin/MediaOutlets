@@ -9,6 +9,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+<<<<<<< feature/pipeline
+# Create client (local)
+# TODO: update to connect to remote Chroma instance when deployed
+client = chromadb.Client()
+=======
 
 def get_chroma_client():
     chroma_host = os.getenv("CHROMA_HOST", "localhost")
@@ -22,6 +27,7 @@ def get_chroma_client():
 
 # Create client
 client = get_chroma_client()
+>>>>>>> main
 
 # Create/get collection
 collection = client.get_or_create_collection(name="articles")
