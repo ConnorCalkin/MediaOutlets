@@ -2,7 +2,7 @@ from parsing import get_articles_from_rss
 from extractkeywords import extract_keywords_spacy
 from ner import extract_entities
 from sentiment_analysis import analyse_sentiment
-from ingest import ingest_article
+from rag.ingest import ingest_article
 from store import store_article
 import logging
 
@@ -31,7 +31,7 @@ def get_enriched_article(article):
     }
 
 
-def ingest(article) -> None:
+def ingest_wrapper(article) -> None:
     '''Wrapper around the ingest_article function to handle exceptions and log errors'''
     try:
         ingest_article(
@@ -41,9 +41,18 @@ def ingest(article) -> None:
             text=article['body'],
             source=RSS_FEED
         )
-        logger.info(f"Successfully ingested article: {article['url']}")
+        logger.info(f"Successfully ingested article: {article['article_url']}")
     except Exception as e:
-        logger.error(f"Error ingesting article {article['url']}: {e}")
+        logger.error(f"Error ingesting article {article['article_url']}: {e}")
+
+
+def store_wrapper(article) -> None:
+    '''Wrapper around the store_article function to handle exceptions and log errors'''
+    try:
+        store_article(article)
+        logger.info(f"Successfully stored article: {article['article_url']}")
+    except Exception as e:
+        logger.error(f"Error storing article {article['article_url']}: {e}")
 
 
 def pipeline(event=None, context=None) -> dict:
@@ -57,11 +66,11 @@ def pipeline(event=None, context=None) -> dict:
     articles = get_articles_from_rss(RSS_FEED)
     for article in articles:
         # ingest articles into chromadb for RAG server
-        ingest(article)
+        # ingest_wrapper(article)
         # add keywords, entities and sentiment analysis to article dictionary
         enriched_article = get_enriched_article(article)
-        # add enriched articles to database
-        store_article(enriched_article)
+        # add enriched article to database
+        store_wrapper(enriched_article)
 
     return {
         "statusCode": 200,

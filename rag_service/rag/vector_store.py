@@ -9,11 +9,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-<<<<<<< feature/pipeline
-# Create client (local)
-# TODO: update to connect to remote Chroma instance when deployed
-client = chromadb.Client()
-=======
 
 def get_chroma_client():
     chroma_host = os.getenv("CHROMA_HOST", "localhost")
@@ -24,19 +19,17 @@ def get_chroma_client():
     )
 
 
-# Create client
-client = get_chroma_client()
->>>>>>> main
-
-# Create/get collection
-collection = client.get_or_create_collection(name="articles")
-
-
 def add_chunks(chunks: list[str], metadata: dict, embeddings: list[list[float]]):
     """
     Saves chunk text, embedding, and metadata.
     - allows for fast semantic search later
     """
+
+    # Create client
+    client = get_chroma_client()
+
+    # Create/get collection
+    collection = client.get_or_create_collection(name="articles")
     ids = [f"{metadata['article_id']}_{i}" for i in range(len(chunks))]
 
     metadatas = [

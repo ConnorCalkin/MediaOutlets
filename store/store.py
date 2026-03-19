@@ -23,65 +23,100 @@ def convert_floats(data):
     return data
 
 
-def store_article(article_data):
+def validate_article(article) -> bool:
     """
-    Write an enriched article record to the DynamoDB table.
-
-    Returns
-    -------
-    bool
-        True if the article was stored successfully.
-        False if the article already exists and the write was skipped
-        due to the conditional check (duplicate article).
-
-    Raises
-    ------
-    TypeError
-        If ``article_data`` is not a dictionary.
-    ValueError
-        If one or more required fields are missing from ``article_data``.
-    botocore.exceptions.ClientError
-        If a non-duplicate AWS DynamoDB error occurs (for example,
-        permissions issues, throttling, or table not found).
+    Validates that the article contains all required fields.
     """
-    if not isinstance(article_data, dict):
-        raise TypeError("Input must be a dictionary")
 
-    required_fields = ["article_url", "published_date",
-                       "title", "body", "source", "sentiment", "entities", "keywords"]
-    missing = [field for field in required_fields if field not in article_data]
-    if missing:
-        raise ValueError(f"Missing required fields: {missing}")
+    # Check that the article is a dictionary
+    if not isinstance(article, dict):
+        raise TypeError("Article must be a dictionary")
+
+    # Validate required fields and primary key format based on the row type definition
+    required_fields = ["article_url", "published_date", "title",
+                       "body", "source", "sentiment", "entities", "keywords"]
+    missing_fields = [
+        field for field in required_fields if field not in article]
+    if missing_fields:
+        raise ValueError(f"Missing required fields: {missing_fields}")
+
+    return True
+
+
+def get_rows_from_article(article: dict) -> list[dict]:
+    '''Converts an enriched article dictionary into a list of rows to be stored in DynamoDB.'''
+    rows = []
+    # main row with article metadata and sentiment analysis results
+    rows.append({
+        "pk": article["article_url"],
+        "sk": "metadata",
+        "published_date": article["published_date"],
+        "title": article["title"],
+        "body": article["body"],
+        "source": article["source"],
+        "sentiment": article["sentiment"],
+        "scraped_at": article.get("scraped_at", datetime.now().isoformat())
+    })
+
+    # additional rows for each entity and keyword, linking back to the main article row via the article_url
+    for entity_type, entity in article["entities"].items():
+        rows.append({
+            "pk": f"entity#{entity}",
+            "sk": article["article_url"],
+            "type": entity_type
+        })
+    for keyword in article["keywords"]:
+        rows.append({
+            "pk": f"keyword#{keyword}",
+            "sk": article["article_url"]
+        })
+    return rows
+
+
+def is_duplicate(article_url: str) -> bool:
+    '''Checks if an article with the given URL already exists in the database.'''
+    try:
+        response = table.get_item(
+            Key={
+                "pk": article_url,
+                "sk": "metadata"
+            }
+        )
+        if "Item" in response:
+            logger.warning(f"Duplicate article found: {article_url}")
+            return True
+        return False
+    except ClientError as e:
+        logger.error(f"Error checking for duplicate article: {e}")
+        raise e
+
+
+def store_article(article_data: dict) -> None:
+
+    validate_article(article_data)
 
     # Work on a copy to avoid mutating the caller-provided dictionary.
     enriched_article_data = dict(article_data)
+
     enriched_article_data["scraped_at"] = datetime.now().isoformat()
     enriched_article_data = convert_floats(enriched_article_data)
 
-    logger.info("Storing article: %s", enriched_article_data["article_url"])
+    if is_duplicate(enriched_article_data["article_url"]):
+        logger.error(
+            f"Article with URL {enriched_article_data['article_url']} already exists in the database.")
+        raise ValueError(
+            f"Article with URL {enriched_article_data['article_url']} already exists in the database.")
 
-    try:
-        # Only write if no item with this article_url exists already.
-        # Without this condition, put_item would silently overwrite duplicates.
+    logger.info(f"Storing article: {enriched_article_data['article_url']}")
+
+    # Add rows to database
+    rows = get_rows_from_article(enriched_article_data)
+    for row in rows:
+        logger.info("Storing row with PK: %s, SK: %s", row["pk"], row["sk"])
         table.put_item(
-            Item=enriched_article_data,
-            ConditionExpression="attribute_not_exists(article_url)"
+            Item=row,
         )
-        logger.info("Successfully stored article: %s",
-                    enriched_article_data["article_url"])
-        return True
-
-    except ClientError as e:
-        # Gracefully handle the case where the article already exists (duplicate).
-        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            logger.warning("Duplicate article, skipping: %s",
-                           enriched_article_data["article_url"])
-            return False
-        else:
-            # Any other AWS error (permissions, throttling, table not found, etc.)
-            logger.error("Failed to store article: %s - %s",
-                         enriched_article_data["article_url"], str(e))
-            raise e
+        logger.info(f"Successfully stored row: {row['pk']} - {row['sk']}")
 
 
 if __name__ == "__main__":
