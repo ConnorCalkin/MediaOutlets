@@ -27,11 +27,10 @@ COPY sentiment_analysis/sentiment_analysis.py .
 COPY store/store.py .
 
 ## Add RAG service files
-RUN mkdir -p rag
-COPY rag_service/rag/ingest.py rag/
-COPY rag_service/rag/chunking.py rag/
-COPY rag_service/rag/embedding.py rag/
-COPY rag_service/rag/vector_store.py rag/
+COPY rag_service/rag/ingest.py .
+COPY rag_service/rag/chunking.py .
+COPY rag_service/rag/embedding.py .
+COPY rag_service/rag/vector_store.py .
 
 ## Add pipeline file
 COPY pipeline.py .
