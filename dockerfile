@@ -20,8 +20,6 @@ RUN python -m spacy download en_core_web_sm
 ## RSS extraction and enrichment files
 COPY extract_keywords/extractkeywords.py .
 COPY rss_extraction/parsing.py .
-COPY rss_extraction/scraping.py .
-COPY rss_extraction/utils.py .
 COPY name_entity_recognition/ner.py .
 COPY sentiment_analysis/sentiment_analysis.py .
 COPY store/store.py .

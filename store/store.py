@@ -52,7 +52,6 @@ def get_rows_from_article(article: dict) -> list[dict]:
         "sk": "metadata",
         "published_date": article["published_date"],
         "title": article["title"],
-        "body": article["body"],
         "source": article["source"],
         "sentiment": article["sentiment"],
         "scraped_at": article.get("scraped_at", datetime.now().isoformat())

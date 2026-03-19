@@ -2,7 +2,7 @@ from parsing import get_articles_from_rss
 from extractkeywords import extract_keywords_spacy
 from ner import extract_entities
 from sentiment_analysis import analyse_sentiment
-from rag.ingest import ingest_article
+from ingest import ingest_article
 from store import store_article
 import logging
 import boto3
@@ -10,6 +10,7 @@ import json
 
 RSS_FEEDS = ['https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml',
              'https://feeds.bbci.co.uk/news/business/rss.xml']
+
 BUCKET_NAME = "c22-dashboard-divas-article-storage"
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ def pipeline(event=None, context=None) -> dict:
         for article in articles:
             upload_to_s3(article)
             # ingest articles into chromadb for RAG server
-            # ingest_wrapper(article)
+            ingest_wrapper(article)
             # add keywords, entities and sentiment analysis to article dictionary
             enriched_article = get_enriched_article(article)
             # add enriched article to database
