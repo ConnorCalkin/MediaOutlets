@@ -8,4 +8,5 @@ python-dotenv
 spacy
 vaderSentiment
 boto3
-
+newspaper4k
+lxml_html_clean

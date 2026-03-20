@@ -2,11 +2,10 @@
 Purpose: Simple entry point to test RAG ingestion into Chroma.
 """
 
-from rag.ingest import ingest_article
+from ingest import ingest_article
 
 
 def main():
-    article_id = "test-001"
     title = "Test Article"
     url = "https://example.com/test-article"
     text = """

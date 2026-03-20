@@ -33,7 +33,7 @@ resource "aws_iam_policy" "lambda_permissions"{
       {
         "Effect"   = "Allow"
         "Action"   = ["dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:GetItem"]
-        "Resource" = "arn:aws:dynamodb:*:*:table/rss_data_table" 
+        "Resource" = aws_dynamodb_table.articles.arn 
       },
         #Allow the Lambda function to interact with S3 
       {
@@ -72,8 +72,10 @@ resource "aws_lambda_function" "rss_pipeline_lambda" {
 
   environment {
     variables = {
-      OPENAI_API_KEY = var.OPENAI_API_KEY
-    } 
+      CHROMA_HOST    = var.chroma_host
+      CHROMA_PORT    = var.chroma_port
+      OPENAI_API_KEY = var.openai_api_key
+    }
   }
 }
 

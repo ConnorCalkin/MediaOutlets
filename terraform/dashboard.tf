@@ -125,7 +125,7 @@ resource "aws_ecs_service" "dashboard_service" {
     desired_count   = 1
     launch_type     = "FARGATE"
     network_configuration {
-        subnets         = var.subnet_ids
+        subnets         = var.public_subnet_ids
         security_groups = [aws_security_group.ecs_sg.id]
         assign_public_ip = true
     }

@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "eu-west-2"
-}
-
 resource "aws_s3_bucket" "article_storage" {
   bucket = "c22-dashboard-divas-article-storage"
 
