@@ -23,6 +23,7 @@ def get_chroma_client():
 # Create client
 client = get_chroma_client()
 
+
 # Create/get collection
 collection = client.get_or_create_collection(name="articles")
 
