@@ -9,6 +9,8 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY dashboard.py .
-COPY extract.py .
+COPY connect.py .
+COPY chatbot.py .
+COPY data.py .
 
 CMD streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0

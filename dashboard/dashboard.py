@@ -1,20 +1,21 @@
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 import pandas as pd
+import plotly.express as px
 from data import (
-    get_sentiment_over_time,
-    get_mentions_over_time,
-    get_top_keywords,
     get_top_entities,
+    get_bottom_entities,
+    get_top_keywords,
+    get_sentiment_for_entity,
     compare_celebrities
 )
 from chatbot import chat_bot
 
-# --- Layout Configuration ---
-st.set_page_config(page_title="Media Outlet Dashboard", layout="wide")
 
-
-def button_css():
+def chat_button():
+    '''
+    Renders a fixed-position chat button that 
+    opens a popover with the chatbot when clicked.'''
     with stylable_container(
         key="green_popover",
         css_styles="""
@@ -33,11 +34,11 @@ def button_css():
             }
             #bui2 {
                 position: fixed;
-                top: 150px;
-                left: calc(100% - 450px);
+                top: 140px;
+                left: calc(100% - 670px);
                 z-index: 1001;
                 width: 300px;
-                overscroll-behavior: contain;
+                overscroll-behavior: contain !important;
             }
             """,
     ):
@@ -45,125 +46,188 @@ def button_css():
             chat_bot()
 
 
-@st.cache_data(ttl=600)
-def display_top_metrics():
-    """Displays top organizations and keywords in two columns."""
+def display_top_entities(top_entities_df=None):
+    '''
+    Graph showing the entities with the highest average sentiment polarity, 
+    sorted from most positive to least positive.
+    '''
+    st.subheader(f"Entities (Positive Sentiment)")
+    if top_entities_df is not None and not top_entities_df.empty:
+        fig_top = px.bar(
+            top_entities_df, x='Avg Sentiment', y='Entity',
+            orientation='h', color='Avg Sentiment',
+            color_continuous_scale='Greens',
+            text_auto='.2f'
+        )
+        fig_top.update_layout(yaxis={'categoryorder': 'total ascending'})
+        st.plotly_chart(fig_top, use_container_width=True)
+    else:
+        st.info("No data found.")
+
+
+def display_bottom_entities(bottom_entities_df=None):
+    '''
+    Graph showing the entities with the lowest average sentiment polarity, 
+    sorted from most negative to least negative.
+    '''
+    st.subheader(f"Entities (Negative Sentiment)")
+    if bottom_entities_df is not None and not bottom_entities_df.empty:
+        fig_bottom = px.bar(
+            bottom_entities_df, x='Avg Sentiment', y='Entity',
+            orientation='h', color='Avg Sentiment',
+            color_continuous_scale='Reds',
+            text_auto='.2f'
+        )
+        fig_bottom.update_layout(
+            yaxis={'categoryorder': 'total descending'})
+        st.plotly_chart(fig_bottom, use_container_width=True)
+
+
+def display_top_keywords(top_keywords_df: pd.DataFrame = None):
+    '''
+    Graph showing the keywords with the highest average sentiment polarity, 
+    sorted from most positive to least positive.
+    '''
+    st.subheader("Trending Keywords")
+    if top_keywords_df is not None and not top_keywords_df.empty:
+        fig_keys = px.treemap(
+            top_keywords_df, path=['keyword'], values='mention_count',
+            color='mention_count', color_continuous_scale='Blues',
+        )
+        st.plotly_chart(fig_keys, use_container_width=True)
+
+
+def global_overview(top_df: pd.DataFrame = None, bottom_df: pd.DataFrame = None, top_keywords_df: pd.DataFrame = None):
+    '''
+    Displays the global overview tab with top entities, bottom entities, and top keywords.
+    '''
+
     col1, col2 = st.columns(2)
 
     with col1:
-        st.header("Top Organizations")
-        df_org = get_top_entities('ORG')
-        if not df_org.empty:
-            st.bar_chart(df_org.set_index('entity')['mention_count'])
-        else:
-            st.info("No organization data found.")
-
+        display_top_entities(top_df)
     with col2:
-        st.header("Top Keywords")
-        df_key = get_top_keywords()
-        if not df_key.empty:
-            st.bar_chart(df_key.set_index('keyword')['mention_count'])
-        else:
-            st.info("No keyword data found.")
+        display_bottom_entities(bottom_df)
+    st.divider()
+    display_top_keywords(top_keywords_df)
 
 
-# def display_sources():
-#     """Displays article distribution by source."""
-#     st.header("Articles by Source")
-#     df = get_articles_by_source()
-#     if not df.empty:
-#         # Using a pie chart for source distribution
-#         st.pie_chart(df.set_index('source')['article_count'])
-#     else:
-#         st.info("No source data available.")
+def header():
+    '''Renders the header of the dashboard.'''
+    st.title("📰 Media Outlets & News Summary Dashboard")
+    st.markdown("Analyzing sentiment and trends across entities and keywords.")
 
 
-def celebrity_section():
-    """Handles the selection and detailed charts for a single celebrity."""
-    st.header("Individual Celebrity Analysis")
+def entity_analysis():
+    '''
+    Allows users to input an entity name and see a deep dive
+      analysis of sentiment trends and related articles for that entity.
+    '''
+    st.subheader("Deep Dive into Specific Entity")
+    search_name = st.text_input(
+        "Enter Entity Name (e.g., KPMG,Truss):", "KPMG")
 
-    # Get top people for the dropdown
-    df_people = get_top_entities('PERSON')
-    if df_people.empty:
-        st.warning("No celebrities found in the database.")
-        return
+    if search_name:
+        entity_df = get_sentiment_for_entity(search_name)
 
-    selected_celebrity = st.selectbox(
-        "Select a celebrity to view details:",
-        df_people['entity'].tolist()
-    )
+    if not entity_df.empty:
+        # Metrics
+        m1, m2 = st.columns(2)
+        avg_pol = entity_df['sentiment_polarity'].mean()
+        m1.metric("Average Polarity", f"{avg_pol:.2f}")
+        m2.metric("Total Articles", len(entity_df))
 
-    if selected_celebrity:
-        col1, col2 = st.columns(2)
+        # Sentiment Timeline
+        st.markdown(f"**Sentiment Trend for {search_name}**")
+        fig_line = px.line(
+            entity_df, x='published_at', y='sentiment_polarity',
+            hover_data=['title'], markers=True,
+            labels={'sentiment_polarity': 'Sentiment Score',
+                    'published_at': 'Date'}
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
 
-        # 1. Mentions Over Time
-        with col1:
-            st.subheader(f"Mentions: {selected_celebrity}")
-            m_df = get_mentions_over_time(selected_celebrity)
-            if not m_df.empty:
-                st.line_chart(m_df.set_index('date_only')['mention_count'])
-            else:
-                st.write("No mention trend data available.")
-
-        # 2. Sentiment Over Time
-        with col2:
-            st.subheader(f"Sentiment Trend: {selected_celebrity}")
-            s_df = get_sentiment_over_time(selected_celebrity)
-            if not s_df.empty:
-                st.line_chart(s_df.set_index('date_only')
-                              ['sentiment_polarity'])
-            else:
-                st.write("No sentiment trend data available.")
-
-
-def comparison_section():
-    """Allows users to compare multiple celebrities side-by-side."""
-    st.header("Celebrity Comparison")
-    df_people = get_top_entities('PERSON')
-
-    if not df_people.empty:
-        selected_names = st.multiselect(
-            "Select celebrities to compare:",
-            df_people['entity'].tolist(),
-            default=df_people['entity'].tolist()[:2]  # Default to top 2
+        # Data Table
+        st.markdown("**Recent Articles**")
+        st.dataframe(
+            entity_df[['published_at', 'title', 'sentiment_label', 'url']],
+            use_container_width=True,
+            column_config={
+                "url": st.column_config.LinkColumn(
+                    "Article Link",
+                    help="Click to open the full article",
+                    validate="^https?://",
+                    # This makes every link say "Open Article" instead of the long URL
+                    display_text="Open Article"
+                )
+            },
+            hide_index=True
         )
 
-        if selected_names:
-            comparison_df = compare_celebrities(selected_names)
-            st.dataframe(comparison_df, use_container_width=True)
 
-            # Optional: Visual comparison of mentions
-            st.bar_chart(comparison_df.set_index('Celebrity')['Mentions'])
+def comparison(top_df: pd.DataFrame = None, bottom_df: pd.DataFrame = None):
+    '''
+    Allows users to select multiple entities from the top and bottom lists
+      and compare their average sentiment scores in a scatter plot.
+    '''
+    st.subheader("Compare Multiple Entities")
+
+    # Multiselect to select relevant entities
+    compare_list = st.multiselect(
+        "Select entities to compare:",
+        options=top_df['Entity'].tolist(
+        ) + bottom_df['Entity'].tolist() if not top_df.empty else [],
+        default=[]
+    )
+
+    # chart comparison of entities as well as table comparison
+    if compare_list:
+        comp_df = compare_celebrities(compare_list)
+        fig_comp = px.scatter(
+            comp_df, x='Celebrity', y='Avg Sentiment',
+            size=[10]*len(comp_df), color='Avg Sentiment',
+            color_continuous_scale='RdYlGn', range_color=[-1, 1]
+        )
+        st.plotly_chart(fig_comp, use_container_width=True)
+        st.table(comp_df)
+    else:
+        st.info("Please select entities from the dropdown to compare them.")
 
 
-def main():
-    button_css()
+def body():
+    '''Fetches data and renders the main body of the dashboard, including all tabs and visualizations.'''
+    # --- Get Data ---
+    top_df = get_top_entities()
+    bottom_df = get_bottom_entities()
+    top_keywords_df = get_top_keywords(limit=st.session_state.keyword_limit)
 
-    st.title("📊 Media Outlet Dashboard")
-    st.markdown("""
-        Welcome to the **Media Outlet Dashboard**! 
-        Analyze trends, sentiment, and mentions from ingested news articles.
-    """)
-    st.divider()
+    # --- Tabs ---
+    tab1, tab2, tab3 = st.tabs(
+        ["📊 Global Overview", "🔍 Entity Analysis", "⚔️ Comparison"])
+    with tab1:
+        global_overview(top_df, bottom_df, top_keywords_df)
+    with tab2:
+        entity_analysis()
+    with tab3:
+        comparison(top_df, bottom_df)
 
-    for i in range(100):
-        st.write("A")
 
-    # # 1. Global Metrics
-    # display_top_metrics()
-    # st.divider()
+def sidebar():
+    '''Sidebar settings for the dashboard, including number of keywords to show.'''
+    st.sidebar.header("Settings")
+    st.sidebar.slider("Number of keywords to show",
+                      5, 20, 10, key="keyword_limit")
 
-    # # 2. Source Distribution
-    # display_sources()
-    # st.divider()
 
-    # # 3. Individual Deep Dive
-    # celebrity_section()
-    # st.divider()
-
-    # # 4. Multi-Celebrity Comparison
-    # comparison_section()
+def create_dashboard():
+    '''Main function to create the Streamlit dashboard, including header, sidebar, body, and chat button.'''
+    st.set_page_config(
+        page_title="Media Outlets & News Summary", layout="wide")
+    chat_button()
+    header()
+    sidebar()
+    body()
 
 
 if __name__ == "__main__":
-    main()
+    create_dashboard()
