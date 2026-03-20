@@ -96,9 +96,19 @@ with tab2:
             # Data Table
             st.markdown("**Recent Articles**")
             st.dataframe(
-                entity_df[['published_at', 'title', 'sentiment_label']], use_container_width=True)
-        else:
-            st.warning(f"No data found for '{search_name}'.")
+                entity_df[['published_at', 'title', 'sentiment_label', 'url']],
+                use_container_width=True,
+                column_config={
+                    "url": st.column_config.LinkColumn(
+                        "Article Link",
+                        help="Click to open the full article",
+                        validate="^https?://",
+                        # This makes every link say "Open Article" instead of the long URL
+                        display_text="Open Article"
+                    )
+                },
+                hide_index=True
+            )
 
 # --- Tab 3: Comparison ---
 with tab3:

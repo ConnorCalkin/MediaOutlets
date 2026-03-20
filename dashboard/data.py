@@ -10,7 +10,7 @@ def _get_articles_for_entity(name: str) -> pd.DataFrame:
     """Fetches all articles mentioning a given entity name and ensures clean columns."""
     table = get_dynamo_table()
 
-    # 1. Get the list of URLs associated with this entity
+    # 1. Get the list of URLs (stored as 'sk') associated with this entity 'pk'
     entity_response = table.query(
         KeyConditionExpression=Key('pk').eq(f"entity#{name}")
     )
@@ -18,55 +18,63 @@ def _get_articles_for_entity(name: str) -> pd.DataFrame:
     if not items:
         return pd.DataFrame()
 
+    # Extract the URLs from the 'sk' column of the entity mapping
     urls = [item['sk'] for item in items]
 
     # 2. Fetch the metadata for each URL
     articles = []
     for url in urls:
+        # We look up the metadata using the URL as the 'pk'
         resp = table.get_item(Key={'pk': url, 'sk': 'metadata'})
         if 'Item' in resp:
-            articles.append(resp['Item'])
+            item = resp['Item']
+
+            # --- CRITICAL FIX: Inject the URL back into the item ---
+            # DynamoDB doesn't repeat the 'pk' inside the attributes,
+            # so we manually add it so Pandas can see it as a column.
+            item['url'] = url
+
+            articles.append(item)
 
     if not articles:
         return pd.DataFrame()
 
-    # 3. Create DataFrame and enforce presence of critical columns
+    # 3. Create DataFrame
     df = pd.DataFrame(articles)
 
-    # Ensure these columns exist even if the database was missing them for some rows
+    # 4. Enforce presence of critical columns (prevents KeyError)
     expected_cols = ['title', 'url', 'published_date', 'sentiment']
     for col in expected_cols:
         if col not in df.columns:
             df[col] = None
 
-    # 4. Robust Parsing of Dates
-    # If published_date is empty string or None, errors='coerce' turns it into NaT (Not a Time)
+    # 5. Robust Parsing of Dates
     df['published_at'] = pd.to_datetime(df['published_date'], errors='coerce')
-
-    # Fill missing dates with a placeholder so sort_values doesn't break
+    # Fill missing dates with a placeholder to prevent sorting crashes
     df['published_at'] = df['published_at'].fillna(pd.Timestamp('1970-01-01'))
 
-    # 5. Robust Parsing of Sentiment
+    # 6. Robust Parsing of Sentiment
     def _parse_sentiment(x):
-        # Your data has strings that look like dicts, or actual dicts with Decimals
+        # Handle cases where sentiment is stored as a string representation of a dict
         if isinstance(x, str):
             try:
-                import ast
                 x = ast.literal_eval(x)
             except:
                 return 'Unknown', 0.0
 
         if isinstance(x, dict):
             label = x.get('label', 'Unknown')
-            # Convert Boto3 Decimal to float for Pandas/Plotly
+            # Convert Boto3 Decimal to float so Plotly/Streamlit can read it
             polarity = float(x.get('polarity', 0.0))
             return label, polarity
+
         return 'Unknown', 0.0
 
     # Apply the parser and expand into two new columns
-    sentiment_data = df['sentiment'].apply(_parse_sentiment)
+    sentiment_results = df['sentiment'].apply(_parse_sentiment)
     df[['sentiment_label', 'sentiment_polarity']] = pd.DataFrame(
-        sentiment_data.tolist(), index=df.index)
+        sentiment_results.tolist(), index=df.index
+    )
 
     return df
     # ── Analytics Functions ───────────────────────────────────────────────────────
