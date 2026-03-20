@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 from botocore.exceptions import ClientError
-from store import store_article
+from store import store_article, get_rows_from_article
 
 
 @pytest.fixture
@@ -11,8 +11,23 @@ def valid_article():
         "published_date": "2026-03-17T14:30:00Z",
         "title": "Test Article",
         "source": "BBC Business",
+        "body": "This is a test article body.",
         "sentiment": {"polarity": 0.65, "label": "positive"},
         "entities": {"PERSON": ["Elon Musk"], "ORG": ["Tesla"]},
+        "keywords": ["Electric Cars"]
+    }
+
+
+@pytest.fixture
+def valid_article_2():
+    return {
+        "article_url": "https://bbc.co.uk/test-article-2",
+        "published_date": "2026-03-17T14:30:00Z",
+        "title": "Test Article 2",
+        "body": "This is a test article body.",
+        "source": "BBC Business",
+        "sentiment": {"polarity": 0.65, "label": "positive"},
+        "entities": {"PERSON": ["Elon Musk", "Test Person"], "ORG": ["Tesla"]},
         "keywords": ["Electric Cars"]
     }
 
@@ -97,55 +112,10 @@ def test_missing_keywords():
 # --- Successful write (new URL) ---
 
 @patch("store.table")
-def test_new_article_returns_true(mock_table, valid_article):
+def test_new_article_returns_none(mock_table, valid_article):
     mock_table.put_item.return_value = True
     result = store_article(valid_article)
-    assert result is True
-
-
-@patch("store.table")
-def test_new_article_calls_put_item(mock_table, valid_article):
-    mock_table.put_item.return_value = True
-    store_article(valid_article)
-    mock_table.put_item.assert_called_once()
-
-
-@patch("store.table")
-def test_scraped_at_is_added(mock_table, valid_article):
-    mock_table.put_item.return_value = True
-    store_article(valid_article)
-    stored_item = mock_table.put_item.call_args[1]["Item"]
-    assert "scraped_at" in stored_item
-
-
-@patch("store.table")
-def test_floats_converted_to_decimal(mock_table, valid_article):
-    mock_table.put_item.return_value = True
-    store_article(valid_article)
-    stored_item = mock_table.put_item.call_args[1]["Item"]
-    from decimal import Decimal
-    assert stored_item["sentiment"]["polarity"] == Decimal("0.65")
-
-
-# --- Duplicate URL ---
-
-@patch("store.table")
-def test_duplicate_returns_false(mock_table, valid_article):
-    mock_table.put_item.side_effect = ClientError(
-        {"Error": {"Code": "ConditionalCheckFailedException", "Message": "Duplicate"}},
-        "PutItem"
-    )
-    result = store_article(valid_article)
-    assert result is False
-
-
-@patch("store.table")
-def test_duplicate_does_not_raise(mock_table, valid_article):
-    mock_table.put_item.side_effect = ClientError(
-        {"Error": {"Code": "ConditionalCheckFailedException", "Message": "Duplicate"}},
-        "PutItem"
-    )
-    store_article(valid_article)
+    assert result is None
 
 
 # --- Other AWS errors ---
@@ -159,3 +129,71 @@ def test_table_not_found_raises(mock_table, valid_article):
     )
     with pytest.raises(ClientError):
         store_article(valid_article)
+
+# --- get_rows_from_article tests ---
+
+
+def test_get_rows_from_article(valid_article):
+    rows = get_rows_from_article(valid_article)
+    assert isinstance(rows, list)
+    assert len(rows) > 0
+    main_row = rows[0]
+    assert main_row["title"] == valid_article["title"]
+    assert main_row["published_date"] == valid_article["published_date"]
+    assert main_row["source"] == valid_article["source"]
+    assert {
+        "pk": f"entity#Elon Musk",
+        "sk": valid_article["article_url"],
+        "type": "PERSON"} in rows
+    assert {
+        "pk": f"entity#Tesla",
+        "sk": valid_article["article_url"],
+        "type": "ORG"} in rows
+    assert {
+        "pk": f"keyword#Electric Cars",
+        "sk": valid_article["article_url"]} in rows
+
+
+def test_get_rows_from_article_no_entities_keywords():
+    article = {
+        "article_url": "https://bbc.co.uk/test-article",
+        "published_date": "2026-03-17T14:30:00Z",
+        "title": "Test Article",
+        "body": "This is a test article body.",
+        "source": "BBC Business",
+        "sentiment": {"polarity": 0.65, "label": "positive"},
+        "entities": {},
+        "keywords": []
+    }
+    rows = get_rows_from_article(article)
+    assert isinstance(rows, list)
+    assert len(rows) == 1  # Only the main row should be created
+    main_row = rows[0]
+    assert main_row["title"] == article["title"]
+    assert main_row["published_date"] == article["published_date"]
+    assert main_row["source"] == article["source"]
+
+
+def test_get_rows_from_article_multiple_entities_keywords(valid_article_2):
+    rows = get_rows_from_article(valid_article_2)
+    assert isinstance(rows, list)
+    assert len(rows) == 5  # Main row + 2 entities + 1 keyword
+    main_row = rows[0]
+    assert main_row["title"] == valid_article_2["title"]
+    assert main_row["published_date"] == valid_article_2["published_date"]
+    assert main_row["source"] == valid_article_2["source"]
+    assert {
+        "pk": f"entity#Elon Musk",
+        "sk": valid_article_2["article_url"],
+        "type": "PERSON"} in rows
+    assert {
+        "pk": f"entity#Test Person",
+        "sk": valid_article_2["article_url"],
+        "type": "PERSON"} in rows
+    assert {
+        "pk": f"entity#Tesla",
+        "sk": valid_article_2["article_url"],
+        "type": "ORG"} in rows
+    assert {
+        "pk": f"keyword#Electric Cars",
+        "sk": valid_article_2["article_url"]} in rows

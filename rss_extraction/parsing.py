@@ -1,48 +1,65 @@
+import logging
 import requests
 import xml.etree.ElementTree as ET
-import logging
-from scraping import get_body_text
-from utils import debug_generator
+from newspaper import Article
+
+logger = logging.getLogger("scraping")
 
 
-@debug_generator
-def get_url_contents(url: str) -> str:
-    '''Fetches the content from the specified URL and returns it as a string.'''
-    resp = requests.get(url)
-    if resp.status_code != 200:
+def get_articles_from_rss(url: str):
+    """
+    Fetches an RSS feed and yields enriched article dictionaries.
+    """
+    logger.info("Fetching RSS feed: %s", url)
+
+    response = requests.get(url)
+    if response.status_code != 200:
         raise Exception(
-            f"Failed to fetch URL: {url} with status code: {resp.status_code}")
-    return resp.text
+            f"Failed to fetch RSS feed: {url} (status {response.status_code})")
 
+    root = ET.fromstring(response.text)
+    items = root.findall("channel/item")
 
-def get_body_text_from_url(url: str) -> str:
-    '''Fetches the content from the specified URL and returns the text content of the article element.'''
-    html = get_url_contents(url)
-    return get_body_text(html)
+    logger.info("Found %d articles in feed", len(items))
 
-
-def get_articles_from_rss(url: str) -> list[str]:
-    '''
-    Parses the RSS feed content and returns a list of all link elements.
-    All of the articles are stored in an item element
-    The children are used to populate the article title, body and published date
-    '''
-    rss_content = get_url_contents(url)
-    root = ET.fromstring(rss_content)
-    items = root.findall('channel/item')
     for item in items:
-        yield {
-            'title': item.find('title').text,
-            'url': item.find('link').text,
-            'body': get_body_text_from_url(item.find('link').text),
-            'published': item.find('pubDate').text
-        }
+        link = item.find("link")
+        if link is None or not link.text:
+            logger.warning("Skipping article with no URL")
+            continue
+
+        logger.info("Processing article: %s", link.text)
+
+        yield get_article_data(link.text)
+
+
+def get_article_data(url: str) -> dict:
+    """
+    Downloads and extracts article data from a given URL using newspaper3k.
+    Returns a dictionary containing the article's title, URL, body text, and published date.
+    """
+    article = Article(url)
+    article.download()
+    article.parse()
+    return {
+        "title": article.title,
+        "article_url": url,
+        "body": article.text,
+        "published_date": article.publish_date.isoformat() if article.publish_date else None,
+        "source": article.source_url
+    }
 
 
 if __name__ == "__main__":
-    articles = get_articles_from_rss('https://www.ok.co.uk/?service=rss')
-    for article in articles:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    for article in get_articles_from_rss("https://www.tmz.com/rss.xml"):
         print(f"Title: {article['title']}")
-        print(f"Published: {article['published']}")
-        print(f"Body: {article['body']}\n")
+        print(f"Published: {article['published_date']}")
+        print(f"Body: {article['body'][:200]}...\n")
+        print(f"URL: {article['article_url']}\n")
+        print(f'Source: {article["source"]}\n')
         break
