@@ -1,16 +1,48 @@
 import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
 import pandas as pd
 from data import (
     get_sentiment_over_time,
     get_mentions_over_time,
     get_top_keywords,
     get_top_entities,
-    get_articles_by_source,
     compare_celebrities
 )
+from chatbot import chat_bot
 
 # --- Layout Configuration ---
 st.set_page_config(page_title="Media Outlet Dashboard", layout="wide")
+
+
+def button_css():
+    with stylable_container(
+        key="green_popover",
+        css_styles="""
+            button {
+                width: 70px;
+                height: 70px;
+                background-color: white;
+                color: red;
+                border-radius: 5px;
+                white-space: nowrap;
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                z-index: 1000;
+                overscroll-behavior: contain;
+            }
+            #bui2 {
+                position: fixed;
+                top: 150px;
+                left: calc(100% - 450px);
+                z-index: 1001;
+                width: 300px;
+                overscroll-behavior: contain;
+            }
+            """,
+    ):
+        with st.popover("Chat"):
+            chat_bot()
 
 
 @st.cache_data(ttl=600)
@@ -35,15 +67,15 @@ def display_top_metrics():
             st.info("No keyword data found.")
 
 
-def display_sources():
-    """Displays article distribution by source."""
-    st.header("Articles by Source")
-    df = get_articles_by_source()
-    if not df.empty:
-        # Using a pie chart for source distribution
-        st.pie_chart(df.set_index('source')['article_count'])
-    else:
-        st.info("No source data available.")
+# def display_sources():
+#     """Displays article distribution by source."""
+#     st.header("Articles by Source")
+#     df = get_articles_by_source()
+#     if not df.empty:
+#         # Using a pie chart for source distribution
+#         st.pie_chart(df.set_index('source')['article_count'])
+#     else:
+#         st.info("No source data available.")
 
 
 def celebrity_section():
@@ -105,6 +137,8 @@ def comparison_section():
 
 
 def main():
+    button_css()
+
     st.title("📊 Media Outlet Dashboard")
     st.markdown("""
         Welcome to the **Media Outlet Dashboard**! 
@@ -112,20 +146,23 @@ def main():
     """)
     st.divider()
 
-    # 1. Global Metrics
-    display_top_metrics()
-    st.divider()
+    for i in range(100):
+        st.write("A")
 
-    # 2. Source Distribution
-    display_sources()
-    st.divider()
+    # # 1. Global Metrics
+    # display_top_metrics()
+    # st.divider()
 
-    # 3. Individual Deep Dive
-    celebrity_section()
-    st.divider()
+    # # 2. Source Distribution
+    # display_sources()
+    # st.divider()
 
-    # 4. Multi-Celebrity Comparison
-    comparison_section()
+    # # 3. Individual Deep Dive
+    # celebrity_section()
+    # st.divider()
+
+    # # 4. Multi-Celebrity Comparison
+    # comparison_section()
 
 
 if __name__ == "__main__":
