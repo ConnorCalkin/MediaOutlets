@@ -7,14 +7,15 @@ from data import (
     get_bottom_entities,
     get_top_keywords,
     get_sentiment_for_entity,
-    compare_celebrities
+    compare_celebrities,
+    get_entities
 )
 from chatbot import chat_bot
 
 
 def chat_button():
     '''
-    Renders a fixed-position chat button that 
+    Renders a fixed-position chat button that
     opens a popover with the chatbot when clicked.'''
     with stylable_container(
         key="green_popover",
@@ -35,9 +36,9 @@ def chat_button():
             #bui2 {
                 position: fixed;
                 top: 140px;
-                left: calc(100% - 670px);
+                left: calc(100% - 620px);
                 z-index: 1001;
-                width: 300px;
+                width: 500px;
                 overscroll-behavior: contain !important;
             }
             """,
@@ -48,7 +49,7 @@ def chat_button():
 
 def display_top_entities(top_entities_df=None):
     '''
-    Graph showing the entities with the highest average sentiment polarity, 
+    Graph showing the entities with the highest average sentiment polarity,
     sorted from most positive to least positive.
     '''
     st.subheader(f"Entities (Positive Sentiment)")
@@ -67,7 +68,7 @@ def display_top_entities(top_entities_df=None):
 
 def display_bottom_entities(bottom_entities_df=None):
     '''
-    Graph showing the entities with the lowest average sentiment polarity, 
+    Graph showing the entities with the lowest average sentiment polarity,
     sorted from most negative to least negative.
     '''
     st.subheader(f"Entities (Negative Sentiment)")
@@ -85,10 +86,14 @@ def display_bottom_entities(bottom_entities_df=None):
 
 def display_top_keywords(top_keywords_df: pd.DataFrame = None):
     '''
-    Graph showing the keywords with the highest average sentiment polarity, 
+    Graph showing the keywords with the highest average sentiment polarity,
     sorted from most positive to least positive.
     '''
     st.subheader("Trending Keywords")
+    st.header("Settings")
+    st.slider("Number of keywords to show",
+              5, 20, 10, key="keyword_limit")
+
     if top_keywords_df is not None and not top_keywords_df.empty:
         fig_keys = px.treemap(
             top_keywords_df, path=['keyword'], values='mention_count',
@@ -124,8 +129,11 @@ def entity_analysis():
       analysis of sentiment trends and related articles for that entity.
     '''
     st.subheader("Deep Dive into Specific Entity")
-    search_name = st.text_input(
-        "Enter Entity Name (e.g., KPMG,Truss):", "KPMG")
+
+    search_name = st.selectbox(
+        "Select an entity to analyze:",
+        options=get_entities()['entity'].unique().tolist()
+    )
 
     if search_name:
         entity_df = get_sentiment_for_entity(search_name)
@@ -165,7 +173,7 @@ def entity_analysis():
         )
 
 
-def comparison(top_df: pd.DataFrame = None, bottom_df: pd.DataFrame = None):
+def comparison(entities_df: pd.DataFrame = None):
     '''
     Allows users to select multiple entities from the top and bottom lists
       and compare their average sentiment scores in a scatter plot.
@@ -175,8 +183,8 @@ def comparison(top_df: pd.DataFrame = None, bottom_df: pd.DataFrame = None):
     # Multiselect to select relevant entities
     compare_list = st.multiselect(
         "Select entities to compare:",
-        options=top_df['Entity'].tolist(
-        ) + bottom_df['Entity'].tolist() if not top_df.empty else [],
+        options=entities_df['entity'].tolist(
+        ) if entities_df is not None else [],
         default=[]
     )
 
@@ -197,8 +205,11 @@ def comparison(top_df: pd.DataFrame = None, bottom_df: pd.DataFrame = None):
 def body():
     '''Fetches data and renders the main body of the dashboard, including all tabs and visualizations.'''
     # --- Get Data ---
+
     top_df = get_top_entities()
     bottom_df = get_bottom_entities()
+    if 'keyword_limit' not in st.session_state:
+        st.session_state.keyword_limit = 10
     top_keywords_df = get_top_keywords(limit=st.session_state.keyword_limit)
 
     # --- Tabs ---
@@ -209,14 +220,8 @@ def body():
     with tab2:
         entity_analysis()
     with tab3:
-        comparison(top_df, bottom_df)
-
-
-def sidebar():
-    '''Sidebar settings for the dashboard, including number of keywords to show.'''
-    st.sidebar.header("Settings")
-    st.sidebar.slider("Number of keywords to show",
-                      5, 20, 10, key="keyword_limit")
+        entities_df = get_entities()
+        comparison(entities_df)
 
 
 def create_dashboard():
@@ -225,7 +230,6 @@ def create_dashboard():
         page_title="Media Outlets & News Summary", layout="wide")
     chat_button()
     header()
-    sidebar()
     body()
 
 

@@ -6,6 +6,7 @@ from decimal import Decimal
 
 
 # ── Shared Helper ─────────────────────────────────────────────────────────────
+@st.cache_data(ttl=3600)
 def _get_articles_for_entity(name: str) -> pd.DataFrame:
     """Fetches all articles mentioning a given entity name and ensures clean columns."""
     table = get_dynamo_table()
@@ -80,6 +81,7 @@ def _get_articles_for_entity(name: str) -> pd.DataFrame:
     # ── Analytics Functions ───────────────────────────────────────────────────────
 
 
+@st.cache_data(ttl=3600)
 def get_sentiment_for_entity(name: str) -> pd.DataFrame:
     """Returns a DataFrame of articles mentioning the entity with sentiment details."""
     df = _get_articles_for_entity(name)
@@ -91,6 +93,7 @@ def get_sentiment_for_entity(name: str) -> pd.DataFrame:
     ]].sort_values('published_at', ascending=False).reset_index(drop=True)
 
 
+@st.cache_data(ttl=3600)
 def compare_celebrities(names: list) -> pd.DataFrame:
     """Returns a comparison table of avg sentiment for multiple entities."""
     results = []
@@ -127,42 +130,52 @@ def get_top_keywords(limit: int = 10) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=3600)
-def get_top_entities(limit: int = 10) -> pd.DataFrame:
-    """
-    Returns entities with the highest average sentiment polarity.
-    Scans for entity# rows, groups by entity name, then fetches
-    article sentiment for each unique entity.
-    """
+def get_entities():
     table = get_dynamo_table()
 
     response = table.scan(
         FilterExpression=Attr('pk').begins_with('entity#')
     )
     items = response.get('Items', [])
-    if not items:
-        return pd.DataFrame()
+    for item in items:
+        item['entity'] = item['pk'].replace('entity#', '', 1)
+    return pd.DataFrame(items)
 
-    # Extract unique entity names from PKs like "entity#TikTok"
-    entity_names = list({
-        item['pk'].replace('entity#', '', 1)
-        for item in items
-    })
+
+@st.cache_data(ttl=3600)
+def get_entity_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    '''gets the average sentiment and article count for each entity in the provided dataframe'''
+    if df.empty:
+        return pd.DataFrame()
 
     results = []
-    for name in entity_names:
-        df = _get_articles_for_entity(name)
-        if not df.empty:
+    for name in df['entity'].unique():
+        entity_df = _get_articles_for_entity(name)
+        if not entity_df.empty:
             results.append({
                 'Entity': name,
-                'Article Count': len(df),
-                'Avg Sentiment': round(df['sentiment_polarity'].mean(), 4),
+                'Article Count': len(entity_df),
+                'Avg Sentiment': round(entity_df['sentiment_polarity'].mean(), 4),
             })
 
-    if not results:
+    return pd.DataFrame(results)
+
+
+@st.cache_data(ttl=3600)
+def get_top_entities(limit: int = 10) -> pd.DataFrame:
+    """
+    Returns entities with the highest average sentiment polarity.
+    Scans for entity# rows, groups by entity name, then fetches
+    article sentiment for each unique entity.
+    """
+    df = get_entities()
+    if df.empty:
         return pd.DataFrame()
 
+    metrics = get_entity_metrics(df)
+
     return (
-        pd.DataFrame(results)
+        pd.DataFrame(metrics)
         .sort_values('Avg Sentiment', ascending=False)
         .head(limit)
         .reset_index(drop=True)
@@ -174,36 +187,14 @@ def get_bottom_entities(limit: int = 10) -> pd.DataFrame:
     """
     Returns entities with the lowest average sentiment polarity.
     """
-    table = get_dynamo_table()
-
-    response = table.scan(
-        FilterExpression=Attr('pk').begins_with('entity#')
-    )
-    items = response.get('Items', [])
-    if not items:
+    df = get_entities()
+    if df.empty:
         return pd.DataFrame()
 
-    # Extract unique entity names from PKs like "entity#TikTok"
-    entity_names = list({
-        item['pk'].replace('entity#', '', 1)
-        for item in items
-    })
-
-    results = []
-    for name in entity_names:
-        df = _get_articles_for_entity(name)
-        if not df.empty:
-            results.append({
-                'Entity': name,
-                'Article Count': len(df),
-                'Avg Sentiment': round(df['sentiment_polarity'].mean(), 4),
-            })
-
-    if not results:
-        return pd.DataFrame()
+    metrics = get_entity_metrics(df)
 
     return (
-        pd.DataFrame(results)
+        pd.DataFrame(metrics)
         .sort_values('Avg Sentiment', ascending=True)
         .head(limit)
         .reset_index(drop=True)
